@@ -90,3 +90,4 @@ This project is licensed under the GNU AGPLv3 License - see the [LICENSE.md](htt
 ## Other Open Source Used
 
 This project uses other Open Source components listed [here](https://gitlab.com/flexiwangroup/fleximanage/blob/master/OPENSOURCE.md).
+# flexiManage
