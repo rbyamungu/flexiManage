@@ -22,6 +22,7 @@ const createError = require('http-errors');
 const bodyParser = require('body-parser');
 const User = require('../models/users');
 const Account = require('../models/accounts');
+const Organization = require('../models/organizations');
 const { membership, preDefinedPermissions } = require('../models/membership');
 const auth = require('../authenticate');
 const { getLoginProcessToken, getToken, getRefreshToken } = require('../tokens');
@@ -135,8 +136,16 @@ router.route('/register')
           trial_end: subscription?.[0]?.subscription?.trial_end ?? null
         }], { session: session });
       })
-      .then((account) => {
+      .then(async (account) => {
         registerAccount = account[0];
+        const cleanOrgName = (req.body.accountName || 'Default Org').substring(0, 45).replace(/[^a-zA-Z0-9- ]/g, '').trim() || 'Default Org';
+        const orgs = await Organization.create([{
+          name: cleanOrgName,
+          description: 'Default Organization',
+          account: registerAccount._id
+        }], { session: session });
+        const registerOrg = orgs[0];
+
         const validateKey = randomKey(30);
         registerUser = new User({
           username: req.body.email,
@@ -149,7 +158,7 @@ router.route('/register')
           state: configs.get('autoVerifyUser', 'boolean') ? 'verified' : 'unverified',
           emailTokens: { verify: validateKey, invite: '', resetPassword: '' },
           defaultAccount: registerAccount._id,
-          defaultOrg: null
+          defaultOrg: registerOrg._id
         });
         return registerUser.validate();
       })
@@ -161,16 +170,27 @@ router.route('/register')
         return registerUser.save();
       })
       .then(() => {
-        const mem = {
-          user: registerUser._id,
-          account: registerAccount._id,
-          group: '',
-          organization: null,
-          to: 'account',
-          role: 'owner',
-          perms: preDefinedPermissions.account_owner
-        };
-        return membership.create([mem], { session: session });
+        const mems = [
+          {
+            user: registerUser._id,
+            account: registerAccount._id,
+            group: '',
+            organization: null,
+            to: 'account',
+            role: 'owner',
+            perms: preDefinedPermissions.account_owner
+          },
+          {
+            user: registerUser._id,
+            account: registerAccount._id,
+            group: '',
+            organization: registerUser.defaultOrg,
+            to: 'organization',
+            role: 'owner',
+            perms: preDefinedPermissions.account_owner
+          }
+        ];
+        return membership.create(mems, { session: session });
       })
       .then(() => {
         const uiServerUrl = getUiServerUrl(req);

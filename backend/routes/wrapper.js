@@ -72,12 +72,13 @@ exports.assignRoutes = function (
       cors.corsWithOptions,
       verifyPermission(permissionResource, 'get'),
       (req, res, next) => {
+        const defaultOrgId = req.user?.defaultOrg?._id || req.user?.defaultOrg || null;
         var p = isById
           ? model.find({
             _id: mongoose.Types.ObjectId(req.params[idName]),
-            org: req.user.defaultOrg._id
+            org: defaultOrgId
           })
-          : model.find({ org: req.user.defaultOrg._id });
+          : model.find({ org: defaultOrgId });
         p.then(
           resp => {
             if (resp.length === 0) return res.status(200).json([]); // return an empty list
@@ -116,13 +117,14 @@ exports.assignRoutes = function (
               checkreq => {
                 session = checkreq.session;
                 let p;
+                const defaultOrgId = req.user?.defaultOrg?._id || req.user?.defaultOrg || null;
                 if (isField) {
                   var set = { $set: {} };
                   set.$set[fieldName] = [];
                   p = model.update(
                     {
                       _id: mongoose.Types.ObjectId(req.params[idName]),
-                      org: req.user.defaultOrg._id
+                      org: defaultOrgId
                     },
                     set,
                     { upsert: false, multi: false, runValidators: true }
@@ -130,9 +132,9 @@ exports.assignRoutes = function (
                 } else if (isById) {
                   p = model.findOneAndDelete({
                     _id: mongoose.Types.ObjectId(req.params[idName]),
-                    org: req.user.defaultOrg._id
+                    org: defaultOrgId
                   });
-                } else p = model.remove({ org: req.user.defaultOrg._id });
+                } else p = model.remove({ org: defaultOrgId });
 
                 if (session) {
                   p = p.session(session);
@@ -210,17 +212,18 @@ exports.assignRoutes = function (
           checkUpdReq('PUT', req)
             .then(
               checkreq => {
+                const defaultOrgId = req.user?.defaultOrg?._id || req.user?.defaultOrg || null;
                 model
                   .findOne({
                     _id: mongoose.Types.ObjectId(req.params[idName]),
-                    org: req.user.defaultOrg._id
+                    org: defaultOrgId
                   })
                   .then(origDoc => {
                     model
                       .findOneAndUpdate(
                         {
                           _id: mongoose.Types.ObjectId(req.params[idName]),
-                          org: req.user.defaultOrg._id
+                          org: defaultOrgId
                         },
                         { $set: req.body },
                         {
@@ -297,12 +300,13 @@ exports.assignRoutes = function (
               checkreq => {
                 let p;
                 if (isField) {
+                  const defaultOrgId = req.user?.defaultOrg?._id || req.user?.defaultOrg || null;
                   var set = { $addToSet: {} };
                   set.$addToSet[fieldName] = { $each: req.body };
                   p = model.update(
                     {
                       _id: mongoose.Types.ObjectId(req.params[idName]),
-                      org: req.user.defaultOrg._id
+                      org: defaultOrgId
                     },
                     set,
                     { upsert: false, multi: false, runValidators: true }

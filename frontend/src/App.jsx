@@ -152,11 +152,8 @@ export default function App() {
       });
       setDevices(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      setDevices([
-        { _id: 'dev-01', name: 'Edge-Router-01', ip: '10.200.0.10', status: 'connected', uptime: '14d 6h' },
-        { _id: 'dev-02', name: 'Branch-FW-02', ip: '10.200.0.12', status: 'connected', uptime: '3d 12h' },
-        { _id: 'dev-03', name: 'Lab-Node-03', ip: '10.200.0.15', status: 'disconnected', uptime: 'Offline' }
-      ]);
+      console.error("Fetch devices error:", err);
+      setDevices([]);
     }
   };
 
@@ -523,38 +520,48 @@ export default function App() {
               </div>
 
               <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-800 bg-slate-950/50 text-xs uppercase text-slate-400">
-                      <th className="p-4">Device Name</th>
-                      <th className="p-4">IP Address</th>
-                      <th className="p-4">Status</th>
-                      <th className="p-4">Uptime</th>
-                      <th className="p-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800 text-sm">
-                    {devices.map((device) => (
-                      <tr key={device._id} className="hover:bg-slate-800/30 transition">
-                        <td className="p-4 font-medium text-slate-200">{device.name}</td>
-                        <td className="p-4 font-mono text-xs text-slate-400">{device.ip}</td>
-                        <td className="p-4">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                            device.status === 'connected' 
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                              : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                          }`}>
-                            {device.status}
-                          </span>
-                        </td>
-                        <td className="p-4 text-xs text-slate-400">{device.uptime}</td>
-                        <td className="p-4 text-right">
-                          <button className="text-xs text-blue-400 hover:text-blue-300 font-medium cursor-pointer">Configure</button>
-                        </td>
+                {devices.length === 0 ? (
+                  <div className="p-12 text-center flex flex-col items-center justify-center space-y-3">
+                    <Radio className="w-10 h-10 text-slate-600 stroke-1" />
+                    <h4 className="text-slate-300 font-semibold text-base">No Devices Registered</h4>
+                    <p className="text-slate-400 text-xs max-w-md">
+                      You haven't registered any flexiEdge router devices yet. Install the flexiEdge software on your edge node and register it using your account token to see it here.
+                    </p>
+                  </div>
+                ) : (
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-800 bg-slate-950/50 text-xs uppercase text-slate-400">
+                        <th className="p-4">Device Name</th>
+                        <th className="p-4">IP Address</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4">Uptime</th>
+                        <th className="p-4 text-right">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800 text-sm">
+                      {devices.map((device) => (
+                        <tr key={device._id} className="hover:bg-slate-800/30 transition">
+                          <td className="p-4 font-medium text-slate-200">{device.name}</td>
+                          <td className="p-4 font-mono text-xs text-slate-400">{device.ip}</td>
+                          <td className="p-4">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                              device.status === 'connected' 
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                            }`}>
+                              {device.status}
+                            </span>
+                          </td>
+                          <td className="p-4 text-xs text-slate-400">{device.uptime}</td>
+                          <td className="p-4 text-right">
+                            <button className="text-xs text-blue-400 hover:text-blue-300 font-medium cursor-pointer">Configure</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           )}
