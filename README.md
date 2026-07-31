@@ -1,136 +1,136 @@
 # flexiManage Controller (Modernized & Self-Hosted Fork)
 
-This repository is a modernized, self-hosted fork of the official [flexiWAN](https://flexiwan.com/) `flexiManage` backend service, updated for compatibility with modern Node.js runtimes and MongoDB engines.
+This repository is a modernized, self-hosted fork of the official [flexiWAN](https://flexiwan.com/) `flexiManage` backend service and frontend management UI, updated for compatibility with modern Node.js runtimes and database engines.
 
 ---
 
-## 🚀 Key Modernization Changes
+## 🚀 Key Modernization Features
 
-This fork resolves major breaking changes present in the legacy release:
-* **Node.js v22 Runtime**: Updated backend scripts to run seamlessly on modern Node v22.x releases.
-* **Mongoose v6/v7+ Refactoring**: Fixed breaking schema population changes by refactoring 11 instances of `.execPopulate()` across model handlers.
-* **Streamlined Local Auth & Mailer Bypass**: Bypassed strict SMTP verification requirements for local/homelab deployment testing.
-* **Submodule Cleanups**: Removed dead/private GitLab submodules (`client`, `backend/billing`, `vpnportal`) to prevent broken git pull loops.
-* **NGINX Integration**: Configured NGINX reverse proxy support for secure SSL termination and routing.
+* **Node.js v22/v24 Runtime**: Updated backend dependencies and scripts to run seamlessly on modern Node.js releases.
+* **Mongoose Refactoring**: Fixed legacy schema population methods across model handlers.
+* **Modern Frontend UI**: Integrated Vite + React frontend dashboard in `frontend/`.
+* **Submodule Cleanups**: Removed deprecated private submodules (`client`, `backend/billing`, `vpnportal`) to prevent git synchronization errors.
 
 ---
 
-## ⚠️ Submodules & Web UI Notes
+## 🛠️ Prerequisites
 
-The original flexiWAN repository relied on closed/private GitLab submodules for SaaS Billing and UI components:
-* `client` - Web UI repository
-* `backend/billing` - SaaS billing module
-* `vpnportal` - VPN portal extension
+Ensure your host system has the following tools installed:
 
-These submodules point to private GitLab endpoints and are **not required** to run the backend API controller. Static frontend assets, if built, are served directly from `backend/public/`.
+* **Node.js**: `v22.x` or newer (Tested up to `v24.x`)
+* **npm**: `v10.x` or newer
+* **Docker** (or local MongoDB `v6.0+` / `v8.0+` & Redis `v6.0+` services)
 
 ---
 
-## 🛠️ System Requirements & Prerequisites
+## 📦 Installation & Setup Guide
 
-Ensure the host environment meets the following requirements:
+Follow these steps to install, build, and run flexiManage:
 
-* **Node.js**: `v22.x` (or newer)
-* **npm**: `v10.x` (or newer)
-* **MongoDB**: `v8.0+` (or standard MongoDB instance/replica set running on port `27017`)
-* **Redis**: `v6.0+` (running on port `6379`)
-* **Web Server**: NGINX (optional, recommended as reverse proxy on port 80/443)
+### Step 1: Start Database Services (MongoDB & Redis)
 
-Verify core database services are active before starting:
+If using Docker:
+```bash
+# Run Redis container on port 6379
+docker run -d --name flexi-redis -p 6379:6379 redis:latest
+
+# Run MongoDB container on port 27017
+docker run -d --name flexi-mongo -p 27017:27017 mongo:latest
+```
+
+Or verify system services if installed locally:
 ```bash
 systemctl status mongod redis
-###
-```
-# flexiWAN Official Repository
-
-The official respository for flexiwan is in https://gitlab.com/flexiwangroup
-
-# About flexiWAN
-
-flexiWAN is the world's first open source [SD-WAN](https://flexiwan.com/). flexiWAN offers a complete SD-WAN solution comprising of flexiEdge (the edge router) and flexiManage (the central management system) with core SD-WAN functionality. Our mission is to democratize the SD-WAN Market through an open source & modular  SD-WAN solution lowering barriers to entry for companies to adopt it or offer services based on the flexiWAN SD-WAN solution. To learn more about the flexiWAN's unique approach to networking, visit the [flexiWAN](https://flexiwan.com/) website, and follow the company on [Twitter](https://twitter.com/FlexiWan) and [LinkedIn](https://www.linkedin.com/company/flexiwan).
-
-To contact us please drop us an email at yourfriends@flexiwan.com, or for any general issue please use our [Google User Group](https://groups.google.com/a/flexiwan.com/forum/#!forum/flexiwan-users)
-
-# flexiManage
-
-This repository contains the flexiManage backend component from flexiWAN. flexiManage service is used for managing [flexiEdge devices](https://docs.flexiwan.com/overview/arch.html#flexiedge). It allows users to create users and accounts and manage the entire network inventory of the organizations in the account.
-
-Our hosted service https://manage.flexiwan.com provides a free access to the flexiManage service for a 30 days trial where users can create an account and use up to 5 flexiEdge devices during the free trial. Users may request extension of the trial by contacting our account team (team@flexiwan.com). One account is allowed per company and users are not allowed to open additional accounts in order to gain additional free trials.
-
-## What is included in this repository
-
-The flexiManage backend component provides REST API for managing the flexiWAN network, configuring and connecting to the flexiWAN flexiEdge devices. 
-The repository includes two git submodules which are used by the flexiWAN SaaS service and are not open. 
-
-When pulling the flexiManage repository, 
-these submodules would be seen as an empty directory:
-* client - a git submodule for the flexiWAN SaaS UI. The UI provides the user side logic and design for managing the network. It uses REST to access flexiManage
-* backend/billing - a git submodule for managing the flexiWAN SaaS billing
-
-These submodules are not required for running the backend serivce and are used for the UI and Billing additions on top of flexiManage.
-To experience the complete flexiWAN system, open a free account on our [hosted system](https://flexiwan.com/pricing).
-
-## Install and use flexiManage locally
-
-### Prerequisites
-FlexiManage requires the following to run:
-* Node.js v10+
-* npm v6+
-* MongoDB 4.0.9, running as a replica-set with 3 nodes on ports 27017, 27018, 27019
-* Redis 5.0.5, running on port 6379
-* A mailer application or trapper of your choice, running on port 1025 (Such as [python mailtrap](https://pypi.org/project/mailtrap/))
-
-### Installing
-##### Getting the source code:
-```
-mkdir flexiManage
-cd flexiManage
-git clone https://gitlab.com/flexiwangroup/fleximanage.git .
 ```
 
-##### Installing dependencies:
-```
+---
+
+### Step 2: Install Backend Dependencies
+
+Navigate to the `backend` folder and install dependencies using `--legacy-peer-deps` to handle peer dependency resolutions:
+
+```bash
 cd backend
-npm install
+npm install --legacy-peer-deps
 ```
 
-### Running
+---
+
+### Step 3: Install & Build Frontend UI
+
+Navigate to the `frontend` directory, install packages, and build production assets:
+
+```bash
+cd ../frontend
+npm install
+npm run build
 ```
+
+---
+
+### Step 4: Deploy Frontend Assets to Backend
+
+Copy the built static assets from `frontend/dist/` into `backend/public/` so the backend Express server can serve the Web UI directly:
+
+```bash
+cd ..
+cp -r frontend/dist/* backend/public/
+```
+
+---
+
+### Step 5: Start flexiManage Service
+
+Start the backend API controller:
+
+```bash
+cd backend
 npm start
 ```
 
-### Creating a user
-To create your first user, use the procedure below:
-1) Register a new user:
-```
-curl -X POST -k "https://local.flexiwan.com:3443/api/users/register" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"accountName\":\"account\",\"userFirstName\":\"user\",\"userLastName\":\"lastname\",\"email\":\"user@example.com\",\"password\":\"xxxxxxxx\",\"userJobTitle\":\"eng\",\"userPhoneNumber\":\"\",\"country\":\"US\",\"companySize\":\"0-10\",\"serviceType\":\"Provider\",\"numberSites\":\"10\",\"companyType\":\"\",\"companyDesc\":\"\",\"captcha\":\"\"}"
-```
-2) You should get an email to user@example.com with a verification link. In the verification link, copy the id and t (token) parameters and execute the verification API:
-```
-curl -X POST -k "https://local.flexiwan.com:3443/api/users/verify-account" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"id\":\"<id parameter in the verification link>\",\"token\":\"<token parameter in the verification link>\"}"
-```
-3) Execute a login API:
-```
-curl -X POST -sD - -k "https://local.flexiwan.com:3443/api/users/login" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"username\":\"user@example.com\",\"password\":\"xxxxxxxx\",\"captcha\":\"\"}"
-```
-Check the response header and use the Refresh-JWT as bearer token for any REST API.
-```
-Refresh-JWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTh...TlNo
-```
-Check the documentation REST API section for more details.  You can create an access-key for your account API key.
+The flexiManage controller will now be running. By default:
+- HTTP / API: `http://localhost:3000` (or `https://localhost:3443` depending on SSL settings)
+- Static Frontend UI is served from `backend/public/`
 
-### Documentation
-For full documentation of flexiManage, please refer to [flexiManage documentation](https://docs.flexiwan.com/management/management-login.html).
+#### (Optional) Development Mode for Frontend
+If developing or modifying the Web UI with hot-reloading:
+```bash
+cd frontend
+npm run dev
+```
 
-## Versioning
+---
 
-FlexiManage uses [SemVer](https://semver.org/) scheme for versioning.
+## 👤 Creating an Initial Account
 
-## License
+1. **Register a new user**:
+   ```bash
+   curl -X POST -k "https://localhost:3443/api/users/register" \
+     -H "accept: application/json" \
+     -H "Content-Type: application/json" \
+     -d '{"accountName":"account","userFirstName":"admin","userLastName":"user","email":"admin@example.com","password":"YourStrongPassword123","userJobTitle":"admin","userPhoneNumber":"","country":"US","companySize":"0-10","serviceType":"Provider","numberSites":"10","companyType":"","companyDesc":"","captcha":""}'
+   ```
 
-This project is licensed under the GNU AGPLv3 License - see the [LICENSE.md](https://gitlab.com/flexiwangroup/fleximanage/blob/master/LICENSE) file for details
+2. **Verify the account**:
+   Copy the verification token and execute the account verification call:
+   ```bash
+   curl -X POST -k "https://localhost:3443/api/users/verify-account" \
+     -H "accept: application/json" \
+     -H "Content-Type: application/json" \
+     -d '{"id":"<VERIFICATION_ID>","token":"<VERIFICATION_TOKEN>"}'
+   ```
 
-## Other Open Source Used
+3. **Log in**:
+   ```bash
+   curl -X POST -sD - -k "https://localhost:3443/api/users/login" \
+     -H "accept: application/json" \
+     -H "Content-Type: application/json" \
+     -d '{"username":"admin@example.com","password":"YourStrongPassword123","captcha":""}'
+   ```
 
-This project uses other Open Source components listed [here](https://gitlab.com/flexiwangroup/fleximanage/blob/master/OPENSOURCE.md).
-# flexiManage
+---
+
+## 📄 License
+
+This project is licensed under the GNU AGPLv3 License - see the [LICENSE](LICENSE) file for details.
+
