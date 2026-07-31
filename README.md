@@ -1,3 +1,46 @@
+# flexiManage Controller (Modernized & Self-Hosted Fork)
+
+This repository is a modernized, self-hosted fork of the official [flexiWAN](https://flexiwan.com/) `flexiManage` backend service, updated for compatibility with modern Node.js runtimes and MongoDB engines.
+
+---
+
+## 🚀 Key Modernization Changes
+
+This fork resolves major breaking changes present in the legacy release:
+* **Node.js v22 Runtime**: Updated backend scripts to run seamlessly on modern Node v22.x releases.
+* **Mongoose v6/v7+ Refactoring**: Fixed breaking schema population changes by refactoring 11 instances of `.execPopulate()` across model handlers.
+* **Streamlined Local Auth & Mailer Bypass**: Bypassed strict SMTP verification requirements for local/homelab deployment testing.
+* **Submodule Cleanups**: Removed dead/private GitLab submodules (`client`, `backend/billing`, `vpnportal`) to prevent broken git pull loops.
+* **NGINX Integration**: Configured NGINX reverse proxy support for secure SSL termination and routing.
+
+---
+
+## ⚠️ Submodules & Web UI Notes
+
+The original flexiWAN repository relied on closed/private GitLab submodules for SaaS Billing and UI components:
+* `client` - Web UI repository
+* `backend/billing` - SaaS billing module
+* `vpnportal` - VPN portal extension
+
+These submodules point to private GitLab endpoints and are **not required** to run the backend API controller. Static frontend assets, if built, are served directly from `backend/public/`.
+
+---
+
+## 🛠️ System Requirements & Prerequisites
+
+Ensure the host environment meets the following requirements:
+
+* **Node.js**: `v22.x` (or newer)
+* **npm**: `v10.x` (or newer)
+* **MongoDB**: `v8.0+` (or standard MongoDB instance/replica set running on port `27017`)
+* **Redis**: `v6.0+` (running on port `6379`)
+* **Web Server**: NGINX (optional, recommended as reverse proxy on port 80/443)
+
+Verify core database services are active before starting:
+```bash
+systemctl status mongod redis
+###
+```
 # flexiWAN Official Repository
 
 The official respository for flexiwan is in https://gitlab.com/flexiwangroup
