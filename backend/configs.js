@@ -65,13 +65,13 @@ const configEnv = {
     // Default value is not set, which only validate the client side captcha
     captchaKey: '',
     // Mongo main database
-    mongoUrl: process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/flexiwan?replicaSet=rs0&directConnection=true',
+    mongoUrl: process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/flexiwan',
     // Mongo analytics database
-    mongoAnalyticsUrl: process.env.MONGO_ANALYTICS_URL || 'mongodb://127.0.0.1:27017/flexiwanAnalytics?replicaSet=rs0&directConnection=true',
+    mongoAnalyticsUrl: process.env.MONGO_ANALYTICS_URL || 'mongodb://127.0.0.1:27017/flexiwanAnalytics',
     // Mongo Billing database
-    mongoBillingUrl: process.env.MONGO_BILLING_URL || 'mongodb://127.0.0.1:27017/flexibilling?replicaSet=rs0&directConnection=true',
+    mongoBillingUrl: process.env.MONGO_BILLING_URL || 'mongodb://127.0.0.1:27017/flexibilling',
     // Mongo VPN database
-    mongoVpnUrl: process.env.MONGO_VPN_URL || 'mongodb://127.0.0.1:27017/flexivpn?replicaSet=rs0&directConnection=true',
+    mongoVpnUrl: process.env.MONGO_VPN_URL || 'mongodb://127.0.0.1:27017/flexivpn',
     // Billing Redirect OK page url
     billingRedirectOkUrl: 'https://local.flexiwan.com/ok.html',
     // Biling config site - this is used as the billing site name in ChargeBee
