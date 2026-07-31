@@ -449,8 +449,8 @@ class Configs {
   }
 
   getEnv () {
-    if (process.argv[1].indexOf('jest') !== -1) return 'testing';
-    return process.argv[2] || 'development';
+    if (process.argv && process.argv[1] && process.argv[1].indexOf('jest') !== -1) return 'testing';
+    return (process.argv && process.argv[2]) || 'development';
   }
 
   // Get the config parameter and convert it from string to the desired type
