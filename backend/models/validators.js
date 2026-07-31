@@ -62,9 +62,9 @@ const validateIPv4Mask = mask => {
   );
 };
 const validateIPv4Prefix = (ipWithMask) => {
-  const ip = ipWithMask.split('/')[0];
-  const ipCidr = new IPCidr(ipWithMask);
-  return (ipCidr.start() === ip);
+  if (!ipWithMask || typeof ipWithMask !== 'string' || !ipWithMask.includes('/')) return false;
+  const [ip, mask] = ipWithMask.split('/');
+  return net.isIPv4(ip) && validateIPv4Mask(mask);
 };
 const validateIPv6Mask = mask => {
   return (
@@ -77,8 +77,7 @@ const validateIPv6Mask = mask => {
 const validateIPv6 = (ip) => { return ip === '' || net.isIPv6(ip); };
 const validateIPaddr = (ip) => { return validateIPv4(ip) || validateIPv6(ip); };
 const validateTunnelRangeIP = (ip) => {
-  const ipCidr = new IPCidr(ip + '/' + configs.get('tunnelRangeMask'));
-  return (ipCidr.start() === ip);
+  return typeof ip === 'string' && (ip === '' || net.isIPv4(ip));
 };
 
 const validateDevId = (devId) => {
