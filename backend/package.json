@@ -82,7 +82,7 @@
   "overrides": {
     "async": "$async",
     "brace-expansion": "2.0.1",
-    "bson": "1.1.6",
+    "bson": "^4.7.2",
     "cookie": "0.7.0",
     "extend": "$extend",
     "form-data": "$form-data",
