@@ -142,6 +142,7 @@ router.route('/register')
         const orgs = await Organization.create([{
           name: cleanOrgName,
           description: 'Default Organization',
+          group: 'default',
           account: registerAccount._id
         }], { session: session });
         const registerOrg = orgs[0];
