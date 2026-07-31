@@ -44,11 +44,12 @@ const genToken = function (data) {
 // check update
 const checkUpdReq = (qtype, req) => new Promise(function (resolve, reject) {
   if (qtype === 'POST') {
+    const orgId = req.user?.defaultOrg?._id || req.user?.defaultOrg || null;
     req.body.token = genToken({
-      org: req.user.defaultOrg._id.toString(),
-      account: req.user.defaultAccount._id
+      org: orgId ? orgId.toString() : '',
+      account: req.user.defaultAccount?._id || req.user.defaultAccount
     });
-    req.body.org = req.user.defaultOrg._id.toString();
+    req.body.org = orgId ? orgId.toString() : '';
   } else {
     // Don't allow to update the token
     delete req.body.token;

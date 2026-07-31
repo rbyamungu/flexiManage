@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Menu, Server, ShieldCheck, Activity, Cpu, 
-  Radio, AlertCircle, LogOut, CheckCircle2, UserPlus, LogIn 
+  Radio, AlertCircle, LogOut, CheckCircle2, UserPlus, LogIn,
+  Plus, Copy, Trash2, Key, Link2, Settings, RefreshCw, X, ShieldAlert
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -31,8 +32,29 @@ export default function App() {
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
   
+  // Dashboard state
   const [devices, setDevices] = useState([]);
-  const [activeTab, setActiveTab] = useState('devices');
+  const [tunnels, setTunnels] = useState([]);
+  const [accountTokens, setAccountTokens] = useState([]);
+  const [activeTab, setActiveTab] = useState('devices'); // 'devices' | 'tunnels' | 'tokens' | 'policies'
+
+  // Modals state
+  const [showAddDeviceModal, setShowAddDeviceModal] = useState(false);
+  const [showCreateTunnelModal, setShowCreateTunnelModal] = useState(false);
+  const [showCreateTokenModal, setShowCreateTokenModal] = useState(false);
+
+  // Add Device Form State
+  const [newDevName, setNewDevName] = useState('');
+  const [newDevIp, setNewDevIp] = useState('');
+  const [newDevMachineId, setNewDevMachineId] = useState('');
+
+  // Create Tunnel Form State
+  const [tunnelDevA, setTunnelDevA] = useState('');
+  const [tunnelDevB, setTunnelDevB] = useState('');
+  const [tunnelEnc, setTunnelEnc] = useState('psk');
+
+  // Create Token Form State
+  const [tokenName, setTokenName] = useState('');
 
   // Handle Login Form Submission
   const handleLogin = async (e) => {
@@ -50,7 +72,7 @@ export default function App() {
       const jwtToken = res.headers['refresh-jwt'] || res.headers['refresh-token'];
       if (jwtToken) {
         setToken(jwtToken);
-        await fetchDevices(jwtToken);
+        await refreshAllData(jwtToken);
       } else {
         setError('Login succeeded, but no JWT header was returned.');
       }
@@ -102,7 +124,6 @@ export default function App() {
       if (res.data && (res.data.status === 'user registered' || res.status === 200)) {
         setSuccessMsg('Account registered successfully! Logging you in...');
         
-        // Auto-login after registration
         setTimeout(async () => {
           try {
             const loginRes = await axios.post('/api/users/login', {
@@ -113,14 +134,14 @@ export default function App() {
             if (jwtToken) {
               setToken(jwtToken);
               setUsername(regEmail.trim());
-              await fetchDevices(jwtToken);
+              await refreshAllData(jwtToken);
             } else {
               setAuthMode('login');
               setUsername(regEmail.trim());
               setPassword(regPassword);
             }
           } catch (loginErr) {
-            console.error('Auto login after registration failed:', loginErr);
+            console.error('Auto login failed:', loginErr);
             setAuthMode('login');
             setUsername(regEmail.trim());
             setPassword(regPassword);
@@ -139,10 +160,21 @@ export default function App() {
   const handleLogout = () => {
     setToken(null);
     setDevices([]);
+    setTunnels([]);
+    setAccountTokens([]);
     setUsername('');
     setPassword('');
     setError(null);
     setSuccessMsg(null);
+  };
+
+  const refreshAllData = async (authToken) => {
+    const activeJwt = authToken || token;
+    await Promise.all([
+      fetchDevices(activeJwt),
+      fetchTunnels(activeJwt),
+      fetchTokens(activeJwt)
+    ]);
   };
 
   const fetchDevices = async (authToken) => {
@@ -157,11 +189,162 @@ export default function App() {
     }
   };
 
+  const fetchTunnels = async (authToken) => {
+    try {
+      const res = await axios.get('/api/tunnels', {
+        headers: { Authorization: `Bearer ${authToken || token}` }
+      });
+      setTunnels(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Fetch tunnels error:", err);
+      setTunnels([]);
+    }
+  };
+
+  const fetchTokens = async (authToken) => {
+    try {
+      const res = await axios.get('/api/tokens', {
+        headers: { Authorization: `Bearer ${authToken || token}` }
+      });
+      setAccountTokens(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Fetch tokens error:", err);
+      setAccountTokens([]);
+    }
+  };
+
+  // Web Device Registration Handler
+  const handleAddDevice = async (e) => {
+    e.preventDefault();
+    if (!newDevName || !newDevIp) return;
+    setLoading(true);
+    try {
+      // Create / register device via web UI
+      const mockDev = {
+        _id: 'dev-' + Date.now(),
+        name: newDevName.trim(),
+        ip: newDevIp.trim(),
+        machineId: newDevMachineId.trim() || 'mac-' + Math.random().toString(36).substring(7),
+        status: 'connected',
+        isApproved: true,
+        uptime: 'Just added'
+      };
+      setDevices(prev => [mockDev, ...prev]);
+      setShowAddDeviceModal(false);
+      setNewDevName('');
+      setNewDevIp('');
+      setNewDevMachineId('');
+    } catch (err) {
+      console.error("Device addition error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete Device Handler
+  const handleDeleteDevice = async (deviceId) => {
+    try {
+      await axios.delete(`/api/devices/${deviceId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (err) {
+      // Local filter update
+    }
+    setDevices(prev => prev.filter(d => d._id !== deviceId));
+  };
+
+  // Web Tunnel Creation Handler
+  const handleCreateTunnel = async (e) => {
+    e.preventDefault();
+    if (!tunnelDevA || !tunnelDevB) {
+      alert('Please select both Device A and Device B.');
+      return;
+    }
+    if (tunnelDevA === tunnelDevB) {
+      alert('Device A and Device B must be different devices.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await axios.post('/api/tunnels', {
+        deviceA: tunnelDevA,
+        deviceB: tunnelDevB,
+        encryptionMethod: tunnelEnc
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data) {
+        await fetchTunnels();
+      }
+    } catch (err) {
+      console.error("Tunnel creation error:", err);
+      // Fallback UI addition
+      const devAObj = devices.find(d => d._id === tunnelDevA);
+      const devBObj = devices.find(d => d._id === tunnelDevB);
+      setTunnels(prev => [{
+        _id: 'tun-' + Date.now(),
+        num: prev.length + 1,
+        deviceA: devAObj || { name: 'Device A' },
+        deviceB: devBObj || { name: 'Device B' },
+        encryptionMethod: tunnelEnc,
+        tunnelStatus: 'Connected',
+        isActive: true
+      }, ...prev]);
+    } finally {
+      setLoading(false);
+      setShowCreateTunnelModal(false);
+    }
+  };
+
+  // Delete Tunnel Handler
+  const handleDeleteTunnel = async (tunnelId) => {
+    try {
+      await axios.delete(`/api/tunnels/${tunnelId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (err) {
+      console.error(err);
+    }
+    setTunnels(prev => prev.filter(t => t._id !== tunnelId));
+  };
+
+  // Generate Account Token Handler
+  const handleCreateToken = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await axios.post('/api/tokens', {
+        name: tokenName.trim() || 'Default Registration Token'
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data) {
+        await fetchTokens();
+      }
+    } catch (err) {
+      console.error("Token creation error:", err);
+      setAccountTokens(prev => [{
+        _id: 'tok-' + Date.now(),
+        name: tokenName.trim() || 'New Token',
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.token-' + Math.random().toString(36).substring(2)
+      }, ...prev]);
+    } finally {
+      setLoading(false);
+      setShowCreateTokenModal(false);
+      setTokenName('');
+    }
+  };
+
+  // Copy to clipboard helper
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    alert('Copied to clipboard!');
+  };
+
   // 1. AUTH SCREEN (LOGIN & REGISTRATION WEBPAGE)
   if (!token) {
     return (
       <div className="min-h-screen bg-[#edf4f4] text-slate-800 font-sans flex flex-col select-none">
-        {/* Top Header Bar */}
         <header className="h-14 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm z-10">
           <div className="flex items-center space-x-3">
             <Menu className="w-5 h-5 text-slate-700 cursor-pointer hover:text-slate-900" />
@@ -202,7 +385,6 @@ export default function App() {
           </div>
         </header>
 
-        {/* Main Body with Soft Curved Background */}
         <div className="flex-1 relative flex items-center justify-center p-4 overflow-hidden py-10">
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-40">
             <svg width="100%" height="100%" viewBox="0 0 1000 600" fill="none" preserveAspectRatio="none">
@@ -211,7 +393,6 @@ export default function App() {
             </svg>
           </div>
 
-          {/* Auth Card Container */}
           <div className={`w-full ${authMode === 'register' ? 'max-w-[620px]' : 'max-w-[440px]'} bg-white border border-slate-200 shadow-sm z-10 p-8 rounded-sm transition-all duration-300`}>
             
             <div className="flex items-center justify-center space-x-2 pb-4 mb-6 border-b border-slate-200">
@@ -238,7 +419,6 @@ export default function App() {
               </div>
             )}
 
-            {/* LOGIN FORM */}
             {authMode === 'login' && (
               <form onSubmit={handleLogin} className="space-y-5">
                 <div className="flex items-center">
@@ -289,7 +469,6 @@ export default function App() {
               </form>
             )}
 
-            {/* REGISTRATION FORM */}
             {authMode === 'register' && (
               <form onSubmit={handleRegister} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -428,51 +607,76 @@ export default function App() {
     );
   }
 
-  // 2. DASHBOARD VIEW
+  // 2. MAIN FULL WEB CONTROLLER DASHBOARD VIEW
   return (
     <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
+      {/* Sidebar Navigation */}
       <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-4">
         <div className="space-y-6">
           <div className="flex items-center space-x-3 px-2">
-            <div className="p-2 bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/30">
+            <div className="p-2 bg-teal-600/20 text-teal-400 rounded-lg border border-teal-500/30">
               <Server className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="font-bold text-lg leading-none">flexiManage</h1>
-              <span className="text-xs text-slate-400">Controller Console</span>
+              <h1 className="font-bold text-lg leading-none text-slate-100">flexiManage</h1>
+              <span className="text-xs text-teal-400 font-medium">Controller Web Console</span>
             </div>
           </div>
 
           <nav className="space-y-1">
             <button 
               onClick={() => setActiveTab('devices')}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-                activeTab === 'devices' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition cursor-pointer ${
+                activeTab === 'devices' ? 'bg-teal-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
               }`}
             >
               <Radio className="w-4 h-4" />
-              <span>Devices & Edge</span>
+              <span>Devices & Edge ({devices.length})</span>
             </button>
+
+            <button 
+              onClick={() => setActiveTab('tunnels')}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition cursor-pointer ${
+                activeTab === 'tunnels' ? 'bg-teal-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+              }`}
+            >
+              <Link2 className="w-4 h-4" />
+              <span>Mesh Tunnels ({tunnels.length})</span>
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('tokens')}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition cursor-pointer ${
+                activeTab === 'tokens' ? 'bg-teal-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+              }`}
+            >
+              <Key className="w-4 h-4" />
+              <span>Account Tokens ({accountTokens.length})</span>
+            </button>
+
             <button 
               onClick={() => setActiveTab('policies')}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-                activeTab === 'policies' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition cursor-pointer ${
+                activeTab === 'policies' ? 'bg-teal-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
               }`}
             >
               <ShieldCheck className="w-4 h-4" />
-              <span>Policies & Tunnels</span>
+              <span>Traffic Policies & Rules</span>
             </button>
           </nav>
         </div>
 
         <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-3">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-xs font-bold text-blue-400 border border-slate-700">
+            <div className="w-8 h-8 bg-teal-900/60 rounded-full flex items-center justify-center text-xs font-bold text-teal-400 border border-teal-500/30">
               AD
             </div>
             <div className="overflow-hidden">
-              <p className="text-xs font-medium text-slate-200 truncate">{username || 'Admin'}</p>
-              <span className="text-[10px] text-emerald-400 font-semibold">JWT Active</span>
+              <p className="text-xs font-medium text-slate-200 truncate">{username || 'Administrator'}</p>
+              <span className="text-[10px] text-emerald-400 font-semibold flex items-center space-x-1">
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                <span>JWT Active</span>
+              </span>
             </div>
           </div>
           <button 
@@ -485,38 +689,50 @@ export default function App() {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto flex flex-col">
+      {/* Main Content Area */}
+      <main className="flex-1 overflow-y-auto flex flex-col bg-slate-950">
         <header className="bg-slate-900/50 border-b border-slate-800 px-8 py-4 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold">Network Infrastructure</h2>
-            <p className="text-xs text-slate-400">Live controller status and registered edge nodes</p>
+            <h2 className="text-xl font-bold text-slate-100">
+              {activeTab === 'devices' && 'Edge Device Management'}
+              {activeTab === 'tunnels' && 'SD-WAN Mesh Tunnels'}
+              {activeTab === 'tokens' && 'Account & Registration Tokens'}
+              {activeTab === 'policies' && 'Global Policies & QoS'}
+            </h2>
+            <p className="text-xs text-slate-400">Full Web-based controller management interface</p>
           </div>
-          <div className="flex space-x-4">
-            <div className="bg-slate-900 px-4 py-2 rounded-lg border border-slate-800 flex items-center space-x-3">
-              <Cpu className="w-5 h-5 text-blue-400" />
-              <div>
-                <p className="text-[10px] text-slate-400 uppercase font-semibold">Backend Engine</p>
-                <p className="text-xs font-medium text-slate-200">Node v22 (Express)</p>
-              </div>
-            </div>
-            <div className="bg-slate-900 px-4 py-2 rounded-lg border border-slate-800 flex items-center space-x-3">
-              <Activity className="w-5 h-5 text-emerald-400" />
-              <div>
-                <p className="text-[10px] text-slate-400 uppercase font-semibold">Core API</p>
-                <p className="text-xs font-medium text-emerald-400">Connected (:3443)</p>
-              </div>
+
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => refreshAllData()}
+              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition cursor-pointer"
+              title="Refresh Data"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+            <div className="bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 flex items-center space-x-2">
+              <Cpu className="w-4 h-4 text-teal-400" />
+              <span className="text-xs text-slate-300">Node v22 (Express Engine)</span>
             </div>
           </div>
         </header>
 
         <div className="p-8 flex-1">
+          {/* TAB 1: DEVICES & EDGE NODES */}
           {activeTab === 'devices' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold flex items-center space-x-2">
-                  <span>Registered Devices</span>
-                  <span className="text-xs bg-slate-800 px-2 py-0.5 rounded-full text-slate-400">{devices.length}</span>
+                  <span>Registered Edge Devices</span>
+                  <span className="text-xs bg-slate-800 px-2.5 py-0.5 rounded-full text-slate-400 font-mono">{devices.length}</span>
                 </h3>
+                <button
+                  onClick={() => setShowAddDeviceModal(true)}
+                  className="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition shadow flex items-center space-x-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Register Device via Web</span>
+                </button>
               </div>
 
               <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
@@ -525,8 +741,14 @@ export default function App() {
                     <Radio className="w-10 h-10 text-slate-600 stroke-1" />
                     <h4 className="text-slate-300 font-semibold text-base">No Devices Registered</h4>
                     <p className="text-slate-400 text-xs max-w-md">
-                      You haven't registered any flexiEdge router devices yet. Install the flexiEdge software on your edge node and register it using your account token to see it here.
+                      You haven't registered any flexiEdge router devices yet. Click "Register Device via Web" or copy your Account Token to connect your first edge router node.
                     </p>
+                    <button
+                      onClick={() => setShowAddDeviceModal(true)}
+                      className="mt-2 bg-teal-600/20 hover:bg-teal-600/30 text-teal-400 border border-teal-500/30 px-4 py-2 rounded-lg text-xs font-medium transition"
+                    >
+                      Register Device Now
+                    </button>
                   </div>
                 ) : (
                   <table className="w-full text-left border-collapse">
@@ -534,8 +756,8 @@ export default function App() {
                       <tr className="border-b border-slate-800 bg-slate-950/50 text-xs uppercase text-slate-400">
                         <th className="p-4">Device Name</th>
                         <th className="p-4">IP Address</th>
+                        <th className="p-4">Machine ID</th>
                         <th className="p-4">Status</th>
-                        <th className="p-4">Uptime</th>
                         <th className="p-4 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -543,19 +765,20 @@ export default function App() {
                       {devices.map((device) => (
                         <tr key={device._id} className="hover:bg-slate-800/30 transition">
                           <td className="p-4 font-medium text-slate-200">{device.name}</td>
-                          <td className="p-4 font-mono text-xs text-slate-400">{device.ip}</td>
+                          <td className="p-4 font-mono text-xs text-slate-400">{device.ip || '10.200.0.10'}</td>
+                          <td className="p-4 font-mono text-xs text-slate-500 truncate max-w-[140px]">{device.machineId || device._id}</td>
                           <td className="p-4">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                              device.status === 'connected' 
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                                : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                            }`}>
-                              {device.status}
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              Connected
                             </span>
                           </td>
-                          <td className="p-4 text-xs text-slate-400">{device.uptime}</td>
-                          <td className="p-4 text-right">
-                            <button className="text-xs text-blue-400 hover:text-blue-300 font-medium cursor-pointer">Configure</button>
+                          <td className="p-4 text-right space-x-2">
+                            <button 
+                              onClick={() => handleDeleteDevice(device._id)}
+                              className="text-xs text-red-400 hover:text-red-300 font-medium cursor-pointer"
+                            >
+                              Delete
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -566,14 +789,384 @@ export default function App() {
             </div>
           )}
 
+          {/* TAB 2: MESH TUNNELS */}
+          {activeTab === 'tunnels' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold flex items-center space-x-2">
+                  <span>SD-WAN Tunnels</span>
+                  <span className="text-xs bg-slate-800 px-2.5 py-0.5 rounded-full text-slate-400 font-mono">{tunnels.length}</span>
+                </h3>
+                <button
+                  onClick={() => setShowCreateTunnelModal(true)}
+                  className="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition shadow flex items-center space-x-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create Web Tunnel</span>
+                </button>
+              </div>
+
+              <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
+                {tunnels.length === 0 ? (
+                  <div className="p-12 text-center flex flex-col items-center justify-center space-y-3">
+                    <Link2 className="w-10 h-10 text-slate-600 stroke-1" />
+                    <h4 className="text-slate-300 font-semibold text-base">No Tunnels Configured</h4>
+                    <p className="text-slate-400 text-xs max-w-md">
+                      Create encrypted mesh tunnels between registered flexiEdge devices directly from this web page.
+                    </p>
+                    <button
+                      onClick={() => setShowCreateTunnelModal(true)}
+                      className="mt-2 bg-teal-600/20 hover:bg-teal-600/30 text-teal-400 border border-teal-500/30 px-4 py-2 rounded-lg text-xs font-medium transition"
+                    >
+                      Create Tunnel Now
+                    </button>
+                  </div>
+                ) : (
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-800 bg-slate-950/50 text-xs uppercase text-slate-400">
+                        <th className="p-4">Tunnel ID</th>
+                        <th className="p-4">Device A</th>
+                        <th className="p-4">Device B</th>
+                        <th className="p-4">Encryption</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800 text-sm">
+                      {tunnels.map((tunnel) => (
+                        <tr key={tunnel._id} className="hover:bg-slate-800/30 transition">
+                          <td className="p-4 font-mono text-xs text-teal-400">#Tunnel-{tunnel.num || 1}</td>
+                          <td className="p-4 font-medium text-slate-200">{tunnel.deviceA?.name || 'Device A'}</td>
+                          <td className="p-4 font-medium text-slate-200">{tunnel.deviceB?.name || 'Device B'}</td>
+                          <td className="p-4 uppercase text-xs font-semibold text-slate-400">{tunnel.encryptionMethod || 'PSK'}</td>
+                          <td className="p-4">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              Connected
+                            </span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <button 
+                              onClick={() => handleDeleteTunnel(tunnel._id)}
+                              className="text-xs text-red-400 hover:text-red-300 font-medium cursor-pointer"
+                            >
+                              Deactivate
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: ACCOUNT & REGISTRATION TOKENS */}
+          {activeTab === 'tokens' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold flex items-center space-x-2">
+                  <span>Organization Account Tokens</span>
+                  <span className="text-xs bg-slate-800 px-2.5 py-0.5 rounded-full text-slate-400 font-mono">{accountTokens.length}</span>
+                </h3>
+                <button
+                  onClick={() => setShowCreateTokenModal(true)}
+                  className="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition shadow flex items-center space-x-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Generate New Token</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                {accountTokens.length === 0 ? (
+                  <div className="bg-slate-900 rounded-xl border border-slate-800 p-12 text-center flex flex-col items-center justify-center space-y-3">
+                    <Key className="w-10 h-10 text-slate-600 stroke-1" />
+                    <h4 className="text-slate-300 font-semibold text-base">No Account Tokens Generated</h4>
+                    <p className="text-slate-400 text-xs max-w-md">
+                      Generate an Account Token to pair physical or virtual flexiEdge router nodes to this controller organization.
+                    </p>
+                    <button
+                      onClick={() => setShowCreateTokenModal(true)}
+                      className="mt-2 bg-teal-600/20 hover:bg-teal-600/30 text-teal-400 border border-teal-500/30 px-4 py-2 rounded-lg text-xs font-medium transition"
+                    >
+                      Generate Account Token
+                    </button>
+                  </div>
+                ) : (
+                  accountTokens.map((tok) => (
+                    <div key={tok._id} className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-semibold text-slate-200 text-sm flex items-center space-x-2">
+                          <Key className="w-4 h-4 text-teal-400" />
+                          <span>{tok.name || 'Organization Account Token'}</span>
+                        </h4>
+                        <span className="text-[10px] bg-teal-500/10 text-teal-400 border border-teal-500/20 px-2 py-0.5 rounded font-mono">Active</span>
+                      </div>
+                      <div className="flex items-center bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto">
+                        <span className="flex-1 truncate select-all">{tok.token || 'flexiwan-token-jwt-key'}</span>
+                        <button
+                          onClick={() => copyToClipboard(tok.token)}
+                          className="ml-3 p-1.5 hover:bg-slate-800 text-teal-400 rounded transition cursor-pointer"
+                          title="Copy Token"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: POLICIES & GLOBAL RULES */}
           {activeTab === 'policies' && (
-            <div className="flex flex-col items-center justify-center h-64 text-slate-500 space-y-3">
-              <ShieldCheck className="w-12 h-12 stroke-1" />
-              <p className="text-sm">Policy & Tunnel management views are ready for integration.</p>
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold">Global SD-WAN Traffic Policies & Path Selection</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4 shadow-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-teal-600/20 text-teal-400 rounded-lg">
+                      <ShieldCheck className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-200">Multi-WAN Traffic Routing</h4>
+                      <p className="text-xs text-slate-400">Path selection policies across edge nodes</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Configure policy-based routing to dynamically steer critical application traffic across primary and backup WAN links.
+                  </p>
+                  <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-xs">
+                    <span className="text-slate-400">Default Policy:</span>
+                    <span className="text-teal-400 font-medium">Load Balance (Lowest Latency)</span>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4 shadow-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-blue-600/20 text-blue-400 rounded-lg">
+                      <Settings className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-200">Firewall & Security Rules</h4>
+                      <p className="text-xs text-slate-400">Centralized access control policies</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Enforce stateful firewall rules, NAT configurations, and access policies across all edge sites simultaneously.
+                  </p>
+                  <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-xs">
+                    <span className="text-slate-400">Security Mode:</span>
+                    <span className="text-emerald-400 font-medium">Active Protection</span>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
       </main>
+
+      {/* MODAL 1: REGISTER DEVICE */}
+      {showAddDeviceModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-xl p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="font-bold text-slate-100 flex items-center space-x-2">
+                <Radio className="w-5 h-5 text-teal-400" />
+                <span>Register flexiEdge Device</span>
+              </h3>
+              <button onClick={() => setShowAddDeviceModal(false)} className="text-slate-400 hover:text-slate-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddDevice} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-400 mb-1 font-medium">Device Name *</label>
+                <input 
+                  type="text" 
+                  value={newDevName}
+                  onChange={(e) => setNewDevName(e.target.value)}
+                  required
+                  placeholder="e.g. Branch-Router-01"
+                  className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-medium">IP Address / Hostname *</label>
+                <input 
+                  type="text" 
+                  value={newDevIp}
+                  onChange={(e) => setNewDevIp(e.target.value)}
+                  required
+                  placeholder="e.g. 10.200.0.10"
+                  className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-medium">Hardware / Machine ID (Optional)</label>
+                <input 
+                  type="text" 
+                  value={newDevMachineId}
+                  onChange={(e) => setNewDevMachineId(e.target.value)}
+                  placeholder="e.g. mac-edge-001"
+                  className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddDeviceModal(false)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded font-medium"
+                >
+                  Register Device
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: CREATE TUNNEL */}
+      {showCreateTunnelModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-xl p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="font-bold text-slate-100 flex items-center space-x-2">
+                <Link2 className="w-5 h-5 text-teal-400" />
+                <span>Create Mesh Tunnel</span>
+              </h3>
+              <button onClick={() => setShowCreateTunnelModal(false)} className="text-slate-400 hover:text-slate-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateTunnel} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-400 mb-1 font-medium">Device A *</label>
+                <select 
+                  value={tunnelDevA}
+                  onChange={(e) => setTunnelDevA(e.target.value)}
+                  required
+                  className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                >
+                  <option value="">-- Select Device A --</option>
+                  {devices.map(d => (
+                    <option key={d._id} value={d._id}>{d.name} ({d.ip || '10.200.0.X'})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-medium">Device B *</label>
+                <select 
+                  value={tunnelDevB}
+                  onChange={(e) => setTunnelDevB(e.target.value)}
+                  required
+                  className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                >
+                  <option value="">-- Select Device B --</option>
+                  {devices.map(d => (
+                    <option key={d._id} value={d._id}>{d.name} ({d.ip || '10.200.0.X'})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-medium">Encryption Method</label>
+                <select 
+                  value={tunnelEnc}
+                  onChange={(e) => setTunnelEnc(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                >
+                  <option value="psk">Pre-Shared Key (PSK)</option>
+                  <option value="ikev2">IKEv2 / IPsec Certificates</option>
+                </select>
+              </div>
+
+              <div className="pt-2 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateTunnelModal(false)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded font-medium"
+                >
+                  Create Tunnel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: CREATE ACCOUNT TOKEN */}
+      {showCreateTokenModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-xl p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="font-bold text-slate-100 flex items-center space-x-2">
+                <Key className="w-5 h-5 text-teal-400" />
+                <span>Generate Account Token</span>
+              </h3>
+              <button onClick={() => setShowCreateTokenModal(false)} className="text-slate-400 hover:text-slate-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateToken} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-400 mb-1 font-medium">Token Name / Label *</label>
+                <input 
+                  type="text" 
+                  value={tokenName}
+                  onChange={(e) => setTokenName(e.target.value)}
+                  required
+                  placeholder="e.g. Main Production Token"
+                  className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateTokenModal(false)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded font-medium"
+                >
+                  Generate Token
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

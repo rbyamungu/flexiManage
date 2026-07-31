@@ -34,8 +34,9 @@ tunnelsRouter
 // When options message received, reply origin based on whitelist
   .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
   .get(cors.corsWithOptions, verifyPermission('tunnels', 'get'), (req, res, next) => {
+    const orgId = req.user?.defaultOrg?._id || req.user?.defaultOrg || null;
     tunnels
-      .find({ org: req.user.defaultOrg._id, isActive: true })
+      .find({ org: orgId, isActive: true })
       .populate('deviceA')
       .populate('deviceB')
       .then((resp) => {
@@ -83,6 +84,33 @@ tunnelsRouter
       .catch((err) => {
         next(err);
       });
+  })
+  .post(cors.corsWithOptions, verifyPermission('tunnels', 'post'), async (req, res, next) => {
+    try {
+      const orgId = req.user?.defaultOrg?._id || req.user?.defaultOrg;
+      if (!orgId) return next(createError(400, 'No organization associated with user'));
+      const { deviceA, deviceB, encryptionMethod } = req.body;
+      if (!deviceA || !deviceB) {
+        return next(createError(400, 'Both Device A and Device B must be selected'));
+      }
+      const count = await tunnels.countDocuments({ org: orgId });
+      const newTunnel = await tunnels.create({
+        org: orgId,
+        num: count + 1,
+        deviceA,
+        deviceB,
+        encryptionMethod: encryptionMethod || 'psk',
+        isActive: true,
+        deviceAconf: true,
+        deviceBconf: true
+      });
+      const populated = await tunnels.findById(newTunnel._id).populate('deviceA').populate('deviceB');
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      return res.json(populated);
+    } catch (err) {
+      return next(createError(500, err.message));
+    }
   });
 
 // deletes the tunnel
@@ -91,10 +119,11 @@ tunnelsRouter
 // When options message received, reply origin based on whitelist
   .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
   .delete(cors.corsWithOptions, verifyPermission('tunnels', 'del'), (req, res, next) => {
+    const orgId = req.user?.defaultOrg?._id || req.user?.defaultOrg || null;
     tunnels
       .findOneAndUpdate(
         // Query
-        { _id: mongoose.Types.ObjectId(req.params.tunnelId), org: req.user.defaultOrg._id },
+        { _id: mongoose.Types.ObjectId(req.params.tunnelId), org: orgId },
         // Update
         { isActive: false },
         // Options
