@@ -65,13 +65,13 @@ const configEnv = {
     // Default value is not set, which only validate the client side captcha
     captchaKey: '',
     // Mongo main database
-    mongoUrl: `mongodb://${hostname}:27017,${hostname}:27018,${hostname}:27019/flexiwan?replicaSet=rs`,
+    mongoUrl: process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/flexiwan?replicaSet=rs0&directConnection=true',
     // Mongo analytics database
-    mongoAnalyticsUrl: `mongodb://${hostname}:27017,${hostname}:27018,${hostname}:27019/flexiwanAnalytics?replicaSet=rs`,
+    mongoAnalyticsUrl: process.env.MONGO_ANALYTICS_URL || 'mongodb://127.0.0.1:27017/flexiwanAnalytics?replicaSet=rs0&directConnection=true',
     // Mongo Billing database
-    mongoBillingUrl: `mongodb://${hostname}:27017,${hostname}:27018,${hostname}:27019/flexibilling?replicaSet=rs`,
+    mongoBillingUrl: process.env.MONGO_BILLING_URL || 'mongodb://127.0.0.1:27017/flexibilling?replicaSet=rs0&directConnection=true',
     // Mongo VPN database
-    mongoVpnUrl: `mongodb://${hostname}:27017,${hostname}:27018,${hostname}:27019/flexivpn?replicaSet=rs`,
+    mongoVpnUrl: process.env.MONGO_VPN_URL || 'mongodb://127.0.0.1:27017/flexivpn?replicaSet=rs0&directConnection=true',
     // Billing Redirect OK page url
     billingRedirectOkUrl: 'https://local.flexiwan.com/ok.html',
     // Biling config site - this is used as the billing site name in ChargeBee
@@ -266,7 +266,7 @@ const configEnv = {
   },
   // Override for development environment, default environment if not specified
   development: {
-    clientStaticDir: 'client/build',
+    clientStaticDir: 'public',
     mailerBypassCert: true,
     SwRepositoryUrl: 'https://deb.flexiwan.com/info/flexiwan-router/latest-testing',
     userTokenExpiration: 604800,
@@ -288,7 +288,7 @@ const configEnv = {
     redirectHttpsPort: 443,
     agentBroker: ['app.flexiwan.com:443'],
     validateOpenAPIResponse: false,
-    clientStaticDir: 'client/build',
+    clientStaticDir: 'public',
     // 'billingConfigSite': 'flexiwan-test',
     // 'billingDefaultPlan': 'enterprise',
     // 'useFlexiBilling': true,
