@@ -560,7 +560,7 @@ const applyTunnelAdd = async (devices, user, data) => {
   });
   devices = await Promise.all(devices.map(d => d
     .populate('interfaces.pathlabels', '_id name type')
-    .execPopulate()
+    
   ));
 
   // Get details for devices to connect

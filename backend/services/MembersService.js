@@ -641,7 +641,7 @@ class MembersService {
       const populatedMember = await registeredMember[0]
         .populate('account')
         .populate('organization')
-        .execPopulate();
+        ;
       populatedMember.user = existingUser || registerUser;
 
       // Send email

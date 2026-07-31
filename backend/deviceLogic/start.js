@@ -46,7 +46,7 @@ const apply = async (devices, user, data) => {
     .populate('policies.firewall.policy', '_id name rules')
     .populate('interfaces.pathlabels', '_id name description color type')
     .populate('org')
-    .execPopulate()
+    
   ));
 
   const errors = [];

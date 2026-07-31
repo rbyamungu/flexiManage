@@ -323,7 +323,7 @@ class MultiLinkPoliciesService {
       const populated = await MLPolicy.populate(
         'rules.action.links.pathlabels',
         '_id name description color type'
-      ).execPopulate();
+      );
 
       const converted = JSON.parse(JSON.stringify(populated));
       // send a notification
@@ -412,7 +412,7 @@ class MultiLinkPoliciesService {
       result = await result.populate(
         'rules.action.links.pathlabels',
         '_id name description color type'
-      ).execPopulate();
+      );
 
       const MLPolicy = (({ _id, name, description, applyOnWan, overrideDefaultRoute, rules }) => ({
         _id,

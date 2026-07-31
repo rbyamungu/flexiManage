@@ -57,7 +57,7 @@ const apply = async (devicesList, user, data) => {
   const opDevices = await Promise.all(
     devicesList.map(d => d.populate('policies.firewall.policy', '_id name rules')
       .populate('interfaces.pathlabels', '_id name description color type')
-      .execPopulate()
+      
     ));
   const errors = [];
   const applyPromises = [];

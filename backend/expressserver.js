@@ -211,14 +211,14 @@ class ExpressServer {
     this.app.use(passport.initialize());
 
     // Enable db admin only in development mode
-    if (configs.get('environment') === 'development') {
-      logger.warn('Warning: Enabling UI database access');
+//    if (configs.get('environment') === 'development') {
+//      logger.warn('Warning: Enabling UI database access');
       // mongo database UI
-      const mongoExpress = require('mongo-express/lib/middleware');
-      const mongoExpressConfig = require('./mongo_express_config');
-      const expressApp = await mongoExpress(mongoExpressConfig);
-      this.app.use('/admindb', expressApp);
-    }
+//      const mongoExpress = require('mongo-express/lib/middleware');
+//      const mongoExpressConfig = require('./mongo_express_config');
+//      const expressApp = await mongoExpress(mongoExpressConfig);
+//      this.app.use('/admindb', expressApp);
+//    }
 
     // Enable routes for non-authorized links
     this.app.use('/ok', express.static(path.join(__dirname, 'public', 'ok.html')));

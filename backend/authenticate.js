@@ -186,7 +186,7 @@ exports.verifyUserLocal = async function (req, res, next) {
         return next(createError(401, 'Account not verified, check your e-mail and verify'));
       } else {
         try {
-          await user.populate('defaultOrg').populate('defaultAccount').execPopulate();
+          await user.populate(['defaultOrg', 'defaultAccount']);
           // If user has no permission for organization set to null
           if (user.defaultOrg) {
             const org = await getUserOrgByID(user, user.defaultOrg._id);

@@ -115,7 +115,7 @@ class VrrpService {
       // populate for the dispatcher only. For rest API we need to return it as is.
       let updated = await newVrrpGroup.populate(
         'devices.device', 'machineId name _id interfaces dhcp'
-      ).execPopulate();
+      );
       updated = newVrrpGroup.toObject();
       const { ids, reasons } = await queue(
         null,

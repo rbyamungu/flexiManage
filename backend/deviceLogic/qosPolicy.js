@@ -507,7 +507,7 @@ const apply = async (deviceList, user, data) => {
   deviceList = await Promise.all(deviceList.map(d => d
     .populate('policies.qos.policy')
     .populate('interfaces.qosPolicy')
-    .execPopulate()
+    
   ));
 
   let qosPolicy, deviceIds;

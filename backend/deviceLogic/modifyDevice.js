@@ -1135,14 +1135,14 @@ const apply = async (device, user, data) => {
       populate: {
         path: 'appStoreApp'
       }
-    }).execPopulate();
+    });
 
   data.newDevice = await data.newDevice
     .populate('interfaces.pathlabels', '_id name type')
     .populate('policies.firewall.policy', '_id name rules')
     .populate('interfaces.qosPolicy')
     .populate('policies.qos.policy')
-    .execPopulate();
+    ;
 
   data.sendAddTunnels ??= new Set();
   data.sendRemoveTunnels ??= new Set();

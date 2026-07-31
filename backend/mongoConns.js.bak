@@ -24,27 +24,31 @@ class MongoConns {
     this.getMainDB = this.getMainDB.bind(this);
     this.getAnalyticsDB = this.getAnalyticsDB.bind(this);
 
-    // mainDB Connection
-    this.mainDB = mongoose.createConnection(configs.get('mongoUrl'));
-    this.mainDB.asPromise().then((db) => {
-      logger.info('Connected to MongoDB mainDB');
-    }).catch((err) => { 
-      logger.error('Failed to connect to mainDB', { params: { err: err.message } }); 
+    this.mainDB = mongoose.createConnection(configs.get('mongoUrl'), {
+      useNewUrlParser: true,
+      useCreateIndex: true
     });
+    this.mainDB.then((db) => {
+      logger.info('Connected to MongoDB mainDB');
+    }, (err) => { logger.error('Failed to connect to mainDB', { params: { err: err.message } }); });
 
-    // analyticsDB Connection
-    this.analyticsDB = mongoose.createConnection(configs.get('mongoAnalyticsUrl'));
-    this.analyticsDB.asPromise().then((db) => {
+    this.analyticsDB = mongoose.createConnection(configs.get('mongoAnalyticsUrl'), {
+      useNewUrlParser: true,
+      useCreateIndex: true
+    });
+    this.analyticsDB.then((db) => {
       logger.info('Connected to MongoDB analyticsDB');
-    }).catch((err) => {
+    }, (err) => {
       logger.error('Failed to connect to analyticsDB', { params: { err: err.message } });
     });
 
-    // vpnDB Connection
-    this.vpnDB = mongoose.createConnection(configs.get('mongoVpnUrl'));
-    this.vpnDB.asPromise().then((db) => {
+    this.vpnDB = mongoose.createConnection(configs.get('mongoVpnUrl'), {
+      useNewUrlParser: true,
+      useCreateIndex: true
+    });
+    this.vpnDB.then((db) => {
       logger.info('Connected to MongoDB vpnDB');
-    }).catch((err) => {
+    }, (err) => {
       logger.error('Failed to connect to vpnDB', { params: { err: err.message } });
     });
   }
@@ -56,7 +60,7 @@ class MongoConns {
   /**
    * Run session based operation with the main database
    * @async
-   * @param  {Function} func         Async function to be called as part of the transaction,
+   * @param  {Function} func          Async function to be called as part of the transaction,
    *                                  this function get the session as a parameter
    * @param  {Boolean}  closeSession  Whether to end the session when the transaction completed
    *                                  or allow to the caller to close the session
@@ -74,7 +78,7 @@ class MongoConns {
       await session.withTransaction(async () => {
         // By default, "withTransaction" tries the function infinitely if the error is mongo error.
         // It tries the function until it succeeds.
-        // Hence we have a protection to prevent infinite loop.
+        // Hance we have a protection to prevent infinite loop.
         // If more than 'times' transient errors (writeConflict), exit with non-mongo error
         execNum += 1;
         if (execNum > times) {

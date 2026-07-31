@@ -1,3 +1,20 @@
+#!/usr/bin/env bash
+set -e
+
+echo "=========================================="
+echo " 🛠️  FlexiManage Automated Fix Script"
+echo "=========================================="
+
+# 1. Back up original files
+echo "[1/5] Backing up package.json and mongoConns.js..."
+cp package.json package.json.bak
+if [ -f "mongoConns.js" ]; then
+  cp mongoConns.js mongoConns.js.bak
+fi
+
+# 2. Generate clean package.json
+echo "[2/5] Updating package.json with fixed dependencies and overrides..."
+cat << 'JSON' > package.json
 {
   "name": "flexiwansite",
   "version": "6.3.37",
@@ -44,7 +61,6 @@
     "math-random": "^1.0.4",
     "migrate-mongoose": "^0.1.0",
     "mongodb": "^3.7.3",
-    "mongo-express": "0.54.0",
     "mongoose": "^6.13.0",
     "morgan": "^1.10.0",
     "node-2fa": "^2.0.3",
@@ -75,6 +91,7 @@
     "eslint-plugin-promise": "^6.1.1",
     "jest": "^29.7.0",
     "jest-each": "^29.7.0",
+    "mongo-express": "^1.1.0-rc-4",
     "node-mocks-http": "^1.11.0"
   },
   "overrides": {
@@ -86,6 +103,27 @@
     "ip-address": "^10.1.0",
     "yargs-parser": "^13.1.2",
     "mpath": "^0.8.4",
-    "mquery": "^3.2.3"
+    "mquery": "^3.2.3",
+    "bson": "^1.1.6"
   }
 }
+JSON
+
+# 3. Patch mongoConns.js to ensure backward compatibility
+if [ -f "mongoConns.js" ]; then
+  echo "[3/5] Fixing mongoConns.js deprecated options..."
+  # Remove deprecated options useNewUrlParser and useCreateIndex
+  sed -i '/useNewUrlParser/d' mongoConns.js
+  sed -i '/useCreateIndex/d' mongoConns.js
+fi
+
+# 4. Wipe node_modules & perform clean install
+echo "[4/5] Re-installing Node modules cleanly..."
+rm -rf node_modules package-lock.json
+npm install --no-bin-links --unsafe-perm
+
+# 5. Run Audit and Test Suite
+echo "[5/5] Running test suite to verify fixes..."
+echo "=========================================="
+npm test
+
