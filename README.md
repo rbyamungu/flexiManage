@@ -103,6 +103,17 @@ npm run dev
 
 ## 👤 Creating an Initial Account
 
+### Option 1: Via Web UI (Recommended)
+
+1. Open your browser and navigate to `http://localhost:3000` (or `https://localhost:3443`).
+2. Click the **Register** button in the header or the **Register new account** link at the bottom of the card.
+3. Fill out your organization name, email address, name, and password (minimum 8 characters).
+4. Click **Complete Registration**. The application will automatically create your account, auto-verify it for local use, and log you directly into the controller dashboard.
+
+---
+
+### Option 2: Via REST API / CLI
+
 1. **Register a new user**:
    ```bash
    curl -X POST -k "https://localhost:3443/api/users/register" \
@@ -111,16 +122,7 @@ npm run dev
      -d '{"accountName":"account","userFirstName":"admin","userLastName":"user","email":"admin@example.com","password":"YourStrongPassword123","userJobTitle":"admin","userPhoneNumber":"","country":"US","companySize":"0-10","serviceType":"Provider","numberSites":"10","companyType":"","companyDesc":"","captcha":""}'
    ```
 
-2. **Verify the account**:
-   Copy the verification token and execute the account verification call:
-   ```bash
-   curl -X POST -k "https://localhost:3443/api/users/verify-account" \
-     -H "accept: application/json" \
-     -H "Content-Type: application/json" \
-     -d '{"id":"<VERIFICATION_ID>","token":"<VERIFICATION_TOKEN>"}'
-   ```
-
-3. **Log in**:
+2. **Log in**:
    ```bash
    curl -X POST -sD - -k "https://localhost:3443/api/users/login" \
      -H "accept: application/json" \
