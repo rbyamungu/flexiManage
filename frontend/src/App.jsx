@@ -1,30 +1,49 @@
 import React, { useState } from 'react';
 import { 
   Menu, Server, ShieldCheck, Activity, Cpu, 
-  Radio, AlertCircle, LogOut 
+  Radio, AlertCircle, LogOut, CheckCircle2, UserPlus, LogIn 
 } from 'lucide-react';
 import axios from 'axios';
 
 export default function App() {
   const [token, setToken] = useState(null);
-  // Default values cleared so inputs start empty
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
+  
+  // Login form state
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  
+  // Registration form state
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  const [regAccountName, setRegAccountName] = useState('');
+  const [regFirstName, setRegFirstName] = useState('');
+  const [regLastName, setRegLastName] = useState('');
+  const [regJobTitle, setRegJobTitle] = useState('Administrator');
+  const [regPhoneNumber, setRegPhoneNumber] = useState('');
+  const [regCountry, setRegCountry] = useState('US');
+  const [regCompanySize, setRegCompanySize] = useState('0-10');
+  const [regServiceType, setRegServiceType] = useState('Provider');
+  const [regNumberSites, setRegNumberSites] = useState('10');
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
   
   const [devices, setDevices] = useState([]);
   const [activeTab, setActiveTab] = useState('devices');
 
   // Handle Login Form Submission
   const handleLogin = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccessMsg(null);
 
     try {
       const res = await axios.post('/api/users/login', {
-        username,
+        username: username.trim(),
         password
       });
       
@@ -37,8 +56,82 @@ export default function App() {
       }
     } catch (err) {
       console.error("Auth failed:", err);
-      setError(err.response?.data?.message || 'Authentication failed. Check your credentials.');
+      setError(err.response?.data?.error || err.response?.data?.message || 'Authentication failed. Check your credentials.');
     } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle Web Registration Form Submission
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    if (regPassword !== regConfirmPassword) {
+      setError('Passwords do not match.');
+      setLoading(false);
+      return;
+    }
+
+    if (regPassword.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const payload = {
+        accountName: regAccountName.trim() || 'My Organization',
+        userFirstName: regFirstName.trim() || 'Admin',
+        userLastName: regLastName.trim() || 'User',
+        email: regEmail.trim(),
+        password: regPassword,
+        userJobTitle: regJobTitle.trim() || 'Administrator',
+        userPhoneNumber: regPhoneNumber.trim(),
+        country: regCountry,
+        companySize: regCompanySize,
+        serviceType: regServiceType,
+        numberSites: regNumberSites,
+        captcha: ''
+      };
+
+      const res = await axios.post('/api/users/register', payload);
+
+      if (res.data && (res.data.status === 'user registered' || res.status === 200)) {
+        setSuccessMsg('Account registered successfully! Logging you in...');
+        
+        // Auto-login after registration
+        setTimeout(async () => {
+          try {
+            const loginRes = await axios.post('/api/users/login', {
+              username: regEmail.trim(),
+              password: regPassword
+            });
+            const jwtToken = loginRes.headers['refresh-jwt'] || loginRes.headers['refresh-token'];
+            if (jwtToken) {
+              setToken(jwtToken);
+              setUsername(regEmail.trim());
+              await fetchDevices(jwtToken);
+            } else {
+              setAuthMode('login');
+              setUsername(regEmail.trim());
+              setPassword(regPassword);
+            }
+          } catch (loginErr) {
+            console.error('Auto login after registration failed:', loginErr);
+            setAuthMode('login');
+            setUsername(regEmail.trim());
+            setPassword(regPassword);
+          } finally {
+            setLoading(false);
+          }
+        }, 1000);
+      }
+    } catch (err) {
+      console.error("Registration failed:", err);
+      setError(err.response?.data?.error || err.response?.data?.message || 'Registration failed. Please check your inputs.');
       setLoading(false);
     }
   };
@@ -48,6 +141,8 @@ export default function App() {
     setDevices([]);
     setUsername('');
     setPassword('');
+    setError(null);
+    setSuccessMsg(null);
   };
 
   const fetchDevices = async (authToken) => {
@@ -65,26 +160,53 @@ export default function App() {
     }
   };
 
-  // 1. OFFICIAL FLEXIWAN LOGIN SCREEN
+  // 1. AUTH SCREEN (LOGIN & REGISTRATION WEBPAGE)
   if (!token) {
     return (
       <div className="min-h-screen bg-[#edf4f4] text-slate-800 font-sans flex flex-col select-none">
         {/* Top Header Bar */}
-        <header className="h-14 bg-white border-b border-slate-200 px-6 flex items-center space-x-4 shadow-sm z-10">
-          <Menu className="w-5 h-5 text-slate-700 cursor-pointer hover:text-slate-900" />
-          <div className="flex items-center space-x-1.5">
-            <svg className="w-7 h-7" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 30C20 30 35 70 50 70C65 70 80 30 80 30" stroke="#00797b" strokeWidth="18" strokeLinecap="round" />
-              <path d="M35 30C35 30 45 55 50 55C55 55 65 30 65 30" stroke="#1f4e5b" strokeWidth="12" strokeLinecap="round" />
-            </svg>
-            <span className="text-xl font-semibold tracking-tight text-[#1f4e5b]">
-              flexi<span className="font-bold text-[#00797b]">WAN</span>
-            </span>
+        <header className="h-14 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm z-10">
+          <div className="flex items-center space-x-3">
+            <Menu className="w-5 h-5 text-slate-700 cursor-pointer hover:text-slate-900" />
+            <div className="flex items-center space-x-1.5">
+              <svg className="w-7 h-7" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 30C20 30 35 70 50 70C65 70 80 30 80 30" stroke="#00797b" strokeWidth="18" strokeLinecap="round" />
+                <path d="M35 30C35 30 45 55 50 55C55 55 65 30 65 30" stroke="#1f4e5b" strokeWidth="12" strokeLinecap="round" />
+              </svg>
+              <span className="text-xl font-semibold tracking-tight text-[#1f4e5b]">
+                flexi<span className="font-bold text-[#00797b]">WAN</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2 text-xs font-medium">
+            <button
+              type="button"
+              onClick={() => { setAuthMode('login'); setError(null); setSuccessMsg(null); }}
+              className={`px-3 py-1.5 rounded transition ${
+                authMode === 'login' 
+                  ? 'bg-[#00797b] text-white' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              Login
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAuthMode('register'); setError(null); setSuccessMsg(null); }}
+              className={`px-3 py-1.5 rounded transition ${
+                authMode === 'register' 
+                  ? 'bg-[#00797b] text-white' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              Register
+            </button>
           </div>
         </header>
 
         {/* Main Body with Soft Curved Background */}
-        <div className="flex-1 relative flex items-center justify-center p-4 overflow-hidden">
+        <div className="flex-1 relative flex items-center justify-center p-4 overflow-hidden py-10">
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-40">
             <svg width="100%" height="100%" viewBox="0 0 1000 600" fill="none" preserveAspectRatio="none">
               <path d="M -100 300 C 200 600, 800 600, 1100 300 C 800 0, 200 0, -100 300 Z" fill="#e2edea" />
@@ -92,11 +214,18 @@ export default function App() {
             </svg>
           </div>
 
-          {/* Login Card */}
-          <div className="w-full max-w-[440px] bg-white border border-slate-200 shadow-sm z-10 p-8 rounded-sm">
-            <h1 className="text-center text-lg font-medium text-slate-800 pb-4 mb-6 border-b border-slate-200">
-              Login to flexi<span className="text-[#3b9395] font-semibold">Edge</span>
-            </h1>
+          {/* Auth Card Container */}
+          <div className={`w-full ${authMode === 'register' ? 'max-w-[620px]' : 'max-w-[440px]'} bg-white border border-slate-200 shadow-sm z-10 p-8 rounded-sm transition-all duration-300`}>
+            
+            <div className="flex items-center justify-center space-x-2 pb-4 mb-6 border-b border-slate-200">
+              <h1 className="text-center text-lg font-medium text-slate-800">
+                {authMode === 'login' ? (
+                  <>Login to flexi<span className="text-[#3b9395] font-semibold">Edge</span></>
+                ) : (
+                  <>Create your flexi<span className="text-[#3b9395] font-semibold">Manage</span> Account</>
+                )}
+              </h1>
+            </div>
 
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-600 text-xs flex items-center space-x-2">
@@ -105,41 +234,197 @@ export default function App() {
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div className="flex items-center">
-                <label className="w-28 text-sm text-slate-600 font-normal">Username</label>
-                <input 
-                  type="text" 
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                  className="flex-1 bg-white border border-slate-300 rounded px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-[#3b9395] transition"
-                  placeholder="Enter email or username"
-                />
+            {successMsg && (
+              <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded text-emerald-700 text-xs flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{successMsg}</span>
               </div>
+            )}
 
-              <div className="flex items-center">
-                <label className="w-28 text-sm text-slate-600 font-normal">Password</label>
-                <input 
-                  type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="flex-1 bg-white border border-slate-300 rounded px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-[#3b9395] transition"
-                  placeholder="••••••••"
-                />
-              </div>
+            {/* LOGIN FORM */}
+            {authMode === 'login' && (
+              <form onSubmit={handleLogin} className="space-y-5">
+                <div className="flex items-center">
+                  <label className="w-28 text-sm text-slate-600 font-normal">Username</label>
+                  <input 
+                    type="text" 
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    className="flex-1 bg-white border border-slate-300 rounded px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-[#3b9395] transition"
+                    placeholder="Enter email address"
+                  />
+                </div>
 
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-[#f39200] hover:bg-[#e08600] disabled:opacity-60 text-white font-medium py-2 rounded text-sm transition shadow-sm"
-                >
-                  {loading ? 'Logging in...' : 'Login'}
-                </button>
-              </div>
-            </form>
+                <div className="flex items-center">
+                  <label className="w-28 text-sm text-slate-600 font-normal">Password</label>
+                  <input 
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="flex-1 bg-white border border-slate-300 rounded px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-[#3b9395] transition"
+                    placeholder="••••••••"
+                  />
+                </div>
+
+                <div className="pt-2 flex items-center justify-between space-x-4">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 bg-[#f39200] hover:bg-[#e08600] disabled:opacity-60 text-white font-medium py-2 rounded text-sm transition shadow-sm flex items-center justify-center space-x-1.5"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span>{loading ? 'Logging in...' : 'Login'}</span>
+                  </button>
+                </div>
+
+                <div className="text-center pt-2 text-xs text-slate-500 border-t border-slate-100">
+                  Don't have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode('register'); setError(null); setSuccessMsg(null); }}
+                    className="text-[#00797b] font-medium hover:underline cursor-pointer"
+                  >
+                    Register new account
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* REGISTRATION FORM */}
+            {authMode === 'register' && (
+              <form onSubmit={handleRegister} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-slate-600 font-medium mb-1">Account / Company Name *</label>
+                    <input 
+                      type="text" 
+                      value={regAccountName}
+                      onChange={(e) => setRegAccountName(e.target.value)}
+                      required
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-[#3b9395] transition"
+                      placeholder="My Organization"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-slate-600 font-medium mb-1">Email Address *</label>
+                    <input 
+                      type="email" 
+                      value={regEmail}
+                      onChange={(e) => setRegEmail(e.target.value)}
+                      required
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-[#3b9395] transition"
+                      placeholder="admin@example.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-slate-600 font-medium mb-1">First Name *</label>
+                    <input 
+                      type="text" 
+                      value={regFirstName}
+                      onChange={(e) => setRegFirstName(e.target.value)}
+                      required
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-[#3b9395] transition"
+                      placeholder="Admin"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-slate-600 font-medium mb-1">Last Name *</label>
+                    <input 
+                      type="text" 
+                      value={regLastName}
+                      onChange={(e) => setRegLastName(e.target.value)}
+                      required
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-[#3b9395] transition"
+                      placeholder="User"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-slate-600 font-medium mb-1">Password * (min 8 chars)</label>
+                    <input 
+                      type="password" 
+                      value={regPassword}
+                      onChange={(e) => setRegPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-[#3b9395] transition"
+                      placeholder="••••••••"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-slate-600 font-medium mb-1">Confirm Password *</label>
+                    <input 
+                      type="password" 
+                      value={regConfirmPassword}
+                      onChange={(e) => setRegConfirmPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-[#3b9395] transition"
+                      placeholder="••••••••"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-slate-600 font-medium mb-1">Country</label>
+                    <select
+                      value={regCountry}
+                      onChange={(e) => setRegCountry(e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-[#3b9395] transition"
+                    >
+                      <option value="US">United States</option>
+                      <option value="CA">Canada</option>
+                      <option value="GB">United Kingdom</option>
+                      <option value="DE">Germany</option>
+                      <option value="FR">France</option>
+                      <option value="AU">Australia</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-slate-600 font-medium mb-1">Service Type</label>
+                    <select
+                      value={regServiceType}
+                      onChange={(e) => setRegServiceType(e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-[#3b9395] transition"
+                    >
+                      <option value="Provider">Managed Service Provider</option>
+                      <option value="Enterprise">Enterprise</option>
+                      <option value="Personal">Personal / Lab</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="pt-3 flex items-center space-x-3">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 bg-[#00797b] hover:bg-[#006062] disabled:opacity-60 text-white font-medium py-2 rounded text-sm transition shadow-sm flex items-center justify-center space-x-1.5"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    <span>{loading ? 'Registering Account...' : 'Complete Registration'}</span>
+                  </button>
+                </div>
+
+                <div className="text-center pt-2 text-xs text-slate-500 border-t border-slate-100">
+                  Already have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode('login'); setError(null); setSuccessMsg(null); }}
+                    className="text-[#00797b] font-medium hover:underline cursor-pointer"
+                  >
+                    Back to Login
+                  </button>
+                </div>
+              </form>
+            )}
+
           </div>
         </div>
       </div>
@@ -195,7 +480,7 @@ export default function App() {
           </div>
           <button 
             onClick={handleLogout}
-            className="w-full bg-slate-900 hover:bg-red-500/10 hover:text-red-400 text-slate-400 text-xs font-medium py-1.5 rounded-lg border border-slate-800 flex items-center justify-center space-x-2 transition"
+            className="w-full bg-slate-900 hover:bg-red-500/10 hover:text-red-400 text-slate-400 text-xs font-medium py-1.5 rounded-lg border border-slate-800 flex items-center justify-center space-x-2 transition cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>
@@ -264,7 +549,7 @@ export default function App() {
                         </td>
                         <td className="p-4 text-xs text-slate-400">{device.uptime}</td>
                         <td className="p-4 text-right">
-                          <button className="text-xs text-blue-400 hover:text-blue-300 font-medium">Configure</button>
+                          <button className="text-xs text-blue-400 hover:text-blue-300 font-medium cursor-pointer">Configure</button>
                         </td>
                       </tr>
                     ))}

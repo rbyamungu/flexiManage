@@ -156,6 +156,8 @@ const configEnv = {
     mailerEnvelopeFromAddress: 'flexiWAN <noreply@flexiwan.com>',
     // Allow users registration, otherwise by invitation only
     allowUsersRegistration: true,
+    // Auto-verify users upon registration for self-hosted / web deployment
+    autoVerifyUser: true,
     // Software version query link
     SwRepositoryUrl: 'https://deb.flexiwan.com/info/flexiwan-router/latest',
     // Software version update email link. ${version} is replaced in run time

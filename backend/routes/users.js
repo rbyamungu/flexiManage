@@ -146,7 +146,7 @@ router.route('/register')
           jobTitle: req.body.userJobTitle,
           phoneNumber: req.body.userPhoneNumber,
           admin: false,
-          state: 'unverified',
+          state: configs.get('autoVerifyUser', 'boolean') ? 'verified' : 'unverified',
           emailTokens: { verify: validateKey, invite: '', resetPassword: '' },
           defaultAccount: registerAccount._id,
           defaultOrg: null
@@ -216,7 +216,7 @@ router.route('/register')
           numSites: req.body.numberSites,
           companyType: '',
           companyDesc: '',
-          state: 'unverified'
+          state: configs.get('autoVerifyUser', 'boolean') ? 'verified' : 'unverified'
         };
         if (!await webHooks.sendToWebHook(configs.get('webHookAddUserUrl'),
           webHookMessage,
