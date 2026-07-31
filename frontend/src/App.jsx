@@ -4,7 +4,8 @@ import {
   Radio, AlertCircle, LogOut, CheckCircle2, UserPlus, LogIn,
   Plus, Copy, Trash2, Key, Link2, Settings, RefreshCw, X, Play, Square,
   Wifi, Smartphone, ShieldAlert, Globe, Layers, Search, Filter,
-  TrendingUp, ArrowRight, Zap, Info, Sliders, Check
+  TrendingUp, ArrowRight, Zap, Info, ChevronDown, ChevronRight, HardDrive,
+  Sliders, Check, Folder, HelpCircle
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -38,7 +39,9 @@ export default function App() {
   const [devices, setDevices] = useState([]);
   const [tunnels, setTunnels] = useState([]);
   const [accountTokens, setAccountTokens] = useState([]);
-  const [activeTab, setActiveTab] = useState('devices'); // 'devices' | 'topology' | 'tunnels' | 'tokens' | 'policies'
+  
+  // flexiManage 5.2.1 Menu Navigation
+  const [activeMenu, setActiveMenu] = useState('devices'); // 'home' | 'devices' | 'tokens' | 'tunnels' | 'topology' | 'policies' | 'firewall'
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -69,8 +72,8 @@ export default function App() {
 
   // System Checker Results
   const [checkerResults, setCheckerResults] = useState([
-    { name: 'DPDK Compatible Driver', status: 'pass', detail: 'igb_uio driver active on PCI bus 00:03.0' },
-    { name: 'Hugepages Allocation', status: 'pass', detail: '1024 x 2MB hugepages allocated in NUMA Node 0' },
+    { name: 'DPDK Compatible Driver', status: 'pass', detail: 'igb_uio driver loaded' },
+    { name: 'Hugepages Allocation', status: 'pass', detail: '1024 x 2MB pages allocated' },
     { name: 'CPU Crypto & AES-NI', status: 'pass', detail: 'Hardware crypto acceleration active' },
     { name: 'STUN NAT Reachability', status: 'pass', detail: 'STUN server local.flexiwan.com:3443 responded' }
   ]);
@@ -241,7 +244,7 @@ export default function App() {
     }
   };
 
-  // Web Device Registration Handler
+  // Device addition handler
   const handleAddDevice = async (e) => {
     e.preventDefault();
     if (!newDevName || !newDevIp) return;
@@ -363,7 +366,7 @@ export default function App() {
       console.error(err);
     }
     setTunnels(prev => prev.filter(t => t._id !== tunnelId));
-    showToast('Tunnel deactivated', 'info');
+    showToast('Tunnel de-activated', 'info');
   };
 
   // Generate Account Token Handler
@@ -410,107 +413,104 @@ export default function App() {
     return matchesSearch && matchesStatus;
   });
 
-  // Calculate live statistics
   const runningDevicesCount = devices.filter(d => d.status !== 'stopped').length;
   const activeTunnelsCount = tunnels.filter(t => t.isActive !== false).length;
 
-  // 1. AUTH SCREEN (LOGIN & REGISTRATION WEBPAGE)
+  // 1. AUTH SCREEN (MATCHING ORIGINAL FLEXIMANAGE 5.2.1 LOGIN UI)
   if (!token) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col select-none relative overflow-hidden">
-        {/* Glowing Background Blobs */}
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute top-1/2 -right-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-        <header className="h-16 bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 px-8 flex items-center justify-between shadow-lg z-10">
+      <div className="min-h-screen bg-[#edf4f4] font-sans flex flex-col justify-between select-none">
+        
+        {/* Official flexiWAN Header */}
+        <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shadow-sm z-10">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-tr from-teal-600 to-cyan-500 rounded-xl shadow-md shadow-teal-500/20">
-              <Server className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <span className="text-xl font-bold tracking-tight text-white flex items-center space-x-1">
-                <span>flexi</span><span className="text-teal-400">Manage</span>
+            <div className="flex items-center space-x-1.5 cursor-pointer">
+              <svg className="w-8 h-8" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 30C20 30 35 70 50 70C65 70 80 30 80 30" stroke="#00797b" strokeWidth="18" strokeLinecap="round" />
+                <path d="M35 30C35 30 45 55 50 55C55 55 65 30 65 30" stroke="#1f4e5b" strokeWidth="12" strokeLinecap="round" />
+              </svg>
+              <span className="text-2xl font-semibold tracking-tight text-[#1f4e5b]">
+                flexi<span className="font-bold text-[#00797b]">Manage</span>
               </span>
-              <p className="text-[10px] text-slate-400 font-medium leading-none">Open SD-WAN Controller Platform</p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 text-xs font-semibold">
+          <div className="flex items-center space-x-3 text-xs font-semibold">
             <button
               type="button"
               onClick={() => { setAuthMode('login'); setError(null); setSuccessMsg(null); }}
-              className={`px-4 py-2 rounded-lg transition-all duration-200 cursor-pointer ${
+              className={`px-4 py-2 rounded transition cursor-pointer ${
                 authMode === 'login' 
-                  ? 'bg-teal-600 text-white shadow-lg shadow-teal-500/20' 
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  ? 'bg-[#00797b] text-white shadow-sm' 
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Login
+              Sign In
             </button>
             <button
               type="button"
               onClick={() => { setAuthMode('register'); setError(null); setSuccessMsg(null); }}
-              className={`px-4 py-2 rounded-lg transition-all duration-200 cursor-pointer ${
+              className={`px-4 py-2 rounded transition cursor-pointer ${
                 authMode === 'register' 
-                  ? 'bg-teal-600 text-white shadow-lg shadow-teal-500/20' 
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  ? 'bg-[#00797b] text-white shadow-sm' 
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Register Account
+              Create Account
             </button>
           </div>
         </header>
 
-        <div className="flex-1 flex items-center justify-center p-6 z-10 py-12">
-          <div className={`w-full ${authMode === 'register' ? 'max-w-[660px]' : 'max-w-[440px]'} bg-slate-900/90 border border-slate-800/90 backdrop-blur-xl shadow-2xl p-8 rounded-2xl transition-all duration-300`}>
+        {/* Center Card Area */}
+        <div className="flex-1 flex items-center justify-center p-6 py-12">
+          <div className={`w-full ${authMode === 'register' ? 'max-w-[640px]' : 'max-w-[420px]'} bg-white border border-slate-200/80 shadow-lg p-8 rounded-md transition-all duration-300`}>
             
-            <div className="text-center pb-6 mb-6 border-b border-slate-800/80">
-              <h1 className="text-xl font-bold text-slate-100 tracking-tight">
+            <div className="text-center pb-4 mb-6 border-b border-slate-200">
+              <h1 className="text-xl font-medium text-slate-800">
                 {authMode === 'login' ? (
-                  <>Welcome back to flexi<span className="text-teal-400">Manage</span></>
+                  <>Login to flexi<span className="text-[#00797b] font-semibold">Manage</span></>
                 ) : (
-                  <>Create your flexi<span className="text-teal-400">Manage</span> Account</>
+                  <>Create Account on flexi<span className="text-[#00797b] font-semibold">Manage</span></>
                 )}
               </h1>
-              <p className="text-xs text-slate-400 mt-1">Centralized SD-WAN Network Management Console</p>
             </div>
 
             {error && (
-              <div className="mb-6 p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center space-x-3">
-                <AlertCircle className="w-5 h-5 shrink-0" />
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-600 text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
             {successMsg && (
-              <div className="mb-6 p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs flex items-center space-x-3">
-                <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded text-emerald-700 text-xs flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>{successMsg}</span>
               </div>
             )}
 
             {authMode === 'login' && (
-              <form onSubmit={handleLogin} className="space-y-5">
+              <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Email / Username</label>
+                  <label className="block text-xs text-slate-600 font-medium mb-1">Username (Email)</label>
                   <input 
                     type="text" 
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition"
-                    placeholder="admin@example.com"
+                    className="w-full bg-white border border-slate-300 rounded px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-[#00797b] transition"
+                    placeholder="name@company.com"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Password</label>
+                  <label className="block text-xs text-slate-600 font-medium mb-1">Password</label>
                   <input 
                     type="password" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition"
+                    className="w-full bg-white border border-slate-300 rounded px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-[#00797b] transition"
                     placeholder="••••••••"
                   />
                 </div>
@@ -519,109 +519,109 @@ export default function App() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 disabled:opacity-60 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg shadow-teal-500/20 flex items-center justify-center space-x-2 cursor-pointer"
+                    className="w-full bg-[#f39200] hover:bg-[#e08600] disabled:opacity-60 text-white font-medium py-2.5 rounded text-sm transition shadow-sm flex items-center justify-center space-x-2 cursor-pointer"
                   >
                     <LogIn className="w-4 h-4" />
-                    <span>{loading ? 'Logging in...' : 'Sign In to Dashboard'}</span>
+                    <span>{loading ? 'Logging in...' : 'Login'}</span>
                   </button>
                 </div>
 
-                <div className="text-center pt-3 text-xs text-slate-400 border-t border-slate-800/80">
-                  Don't have an account?{' '}
+                <div className="text-center pt-3 text-xs text-slate-500 border-t border-slate-100">
+                  Need a new account?{' '}
                   <button
                     type="button"
                     onClick={() => { setAuthMode('register'); setError(null); setSuccessMsg(null); }}
-                    className="text-teal-400 font-semibold hover:underline cursor-pointer"
+                    className="text-[#00797b] font-medium hover:underline cursor-pointer"
                   >
-                    Register new organization
+                    Create Account
                   </button>
                 </div>
               </form>
             )}
 
             {authMode === 'register' && (
-              <form onSubmit={handleRegister} className="space-y-4">
+              <form onSubmit={handleRegister} className="space-y-4 text-xs">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-slate-300 font-semibold mb-1">Account / Company Name *</label>
+                    <label className="block text-slate-600 font-medium mb-1">Account Name *</label>
                     <input 
                       type="text" 
                       value={regAccountName}
                       onChange={(e) => setRegAccountName(e.target.value)}
                       required
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-teal-500 transition"
-                      placeholder="My Enterprise Org"
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-slate-800 focus:outline-none focus:border-[#00797b] transition"
+                      placeholder="My Company Ltd"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-300 font-semibold mb-1">Email Address *</label>
+                    <label className="block text-slate-600 font-medium mb-1">Email Address *</label>
                     <input 
                       type="email" 
                       value={regEmail}
                       onChange={(e) => setRegEmail(e.target.value)}
                       required
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-teal-500 transition"
-                      placeholder="admin@enterprise.com"
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-slate-800 focus:outline-none focus:border-[#00797b] transition"
+                      placeholder="admin@company.com"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-300 font-semibold mb-1">First Name *</label>
+                    <label className="block text-slate-600 font-medium mb-1">First Name *</label>
                     <input 
                       type="text" 
                       value={regFirstName}
                       onChange={(e) => setRegFirstName(e.target.value)}
                       required
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-teal-500 transition"
-                      placeholder="Admin"
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-slate-800 focus:outline-none focus:border-[#00797b] transition"
+                      placeholder="First Name"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-300 font-semibold mb-1">Last Name *</label>
+                    <label className="block text-slate-600 font-medium mb-1">Last Name *</label>
                     <input 
                       type="text" 
                       value={regLastName}
                       onChange={(e) => setRegLastName(e.target.value)}
                       required
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-teal-500 transition"
-                      placeholder="User"
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-slate-800 focus:outline-none focus:border-[#00797b] transition"
+                      placeholder="Last Name"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-300 font-semibold mb-1">Password * (min 8 chars)</label>
+                    <label className="block text-slate-600 font-medium mb-1">Password * (min 8 chars)</label>
                     <input 
                       type="password" 
                       value={regPassword}
                       onChange={(e) => setRegPassword(e.target.value)}
                       required
                       minLength={8}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-teal-500 transition"
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-slate-800 focus:outline-none focus:border-[#00797b] transition"
                       placeholder="••••••••"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-300 font-semibold mb-1">Confirm Password *</label>
+                    <label className="block text-slate-600 font-medium mb-1">Confirm Password *</label>
                     <input 
                       type="password" 
                       value={regConfirmPassword}
                       onChange={(e) => setRegConfirmPassword(e.target.value)}
                       required
                       minLength={8}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-teal-500 transition"
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-slate-800 focus:outline-none focus:border-[#00797b] transition"
                       placeholder="••••••••"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-300 font-semibold mb-1">Country</label>
+                    <label className="block text-slate-600 font-medium mb-1">Country</label>
                     <select
                       value={regCountry}
                       onChange={(e) => setRegCountry(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-teal-500 transition"
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-slate-800 focus:outline-none focus:border-[#00797b] transition"
                     >
                       <option value="US">United States</option>
                       <option value="CA">Canada</option>
@@ -634,11 +634,11 @@ export default function App() {
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-300 font-semibold mb-1">Service Type</label>
+                    <label className="block text-slate-600 font-medium mb-1">Service Type</label>
                     <select
                       value={regServiceType}
                       onChange={(e) => setRegServiceType(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-teal-500 transition"
+                      className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-slate-800 focus:outline-none focus:border-[#00797b] transition"
                     >
                       <option value="Provider">Managed Service Provider</option>
                       <option value="Enterprise">Enterprise</option>
@@ -647,23 +647,23 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="pt-3">
+                <div className="pt-2">
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-lg shadow-teal-500/20 flex items-center justify-center space-x-2 cursor-pointer"
+                    className="w-full bg-[#00797b] hover:bg-[#006062] disabled:opacity-60 text-white font-medium py-2 rounded text-sm transition shadow-sm flex items-center justify-center space-x-2 cursor-pointer"
                   >
                     <UserPlus className="w-4 h-4" />
-                    <span>{loading ? 'Creating Organization...' : 'Complete Web Registration'}</span>
+                    <span>{loading ? 'Creating Account...' : 'Create Account'}</span>
                   </button>
                 </div>
 
-                <div className="text-center pt-3 text-xs text-slate-400 border-t border-slate-800/80">
-                  Already registered?{' '}
+                <div className="text-center pt-2 text-xs text-slate-500 border-t border-slate-100">
+                  Already have an account?{' '}
                   <button
                     type="button"
                     onClick={() => { setAuthMode('login'); setError(null); setSuccessMsg(null); }}
-                    className="text-teal-400 font-semibold hover:underline cursor-pointer"
+                    className="text-[#00797b] font-medium hover:underline cursor-pointer"
                   >
                     Sign In
                   </button>
@@ -673,122 +673,158 @@ export default function App() {
 
           </div>
         </div>
+
+        {/* Footer */}
+        <footer className="py-4 text-center text-xs text-slate-500 bg-white border-t border-slate-200">
+          © 2019-2026 flexiWAN Ltd. All rights reserved.
+        </footer>
       </div>
     );
   }
 
-  // 2. MAIN FULL WEB CONTROLLER DASHBOARD VIEW
+  // 2. MAIN FULL WEB CONTROLLER DASHBOARD VIEW (FLEXIMANAGE 5.2.1 STRUCTURE)
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden relative">
+    <div className="flex h-screen bg-slate-100 text-slate-800 font-sans overflow-hidden">
       
       {/* Toast Notification Container */}
       {toast && (
-        <div className="fixed top-5 right-5 z-50 transition-all duration-300 transform translate-y-0">
-          <div className={`px-4 py-3 rounded-xl border shadow-2xl flex items-center space-x-3 text-xs font-semibold ${
-            toast.type === 'success' ? 'bg-emerald-950/90 border-emerald-500/40 text-emerald-300' : 'bg-slate-900/90 border-teal-500/40 text-slate-200'
+        <div className="fixed top-4 right-4 z-50 transition-all duration-300">
+          <div className={`px-4 py-3 rounded-lg border shadow-xl flex items-center space-x-3 text-xs font-semibold ${
+            toast.type === 'success' ? 'bg-emerald-800 text-emerald-100 border-emerald-700' : 'bg-slate-800 text-slate-100 border-slate-700'
           }`}>
-            <Zap className="w-4 h-4 text-teal-400 animate-pulse" />
+            <Zap className="w-4 h-4 text-amber-400 animate-pulse" />
             <span>{toast.message}</span>
           </div>
         </div>
       )}
 
-      {/* Sidebar Navigation */}
-      <aside className="w-64 bg-slate-900 border-r border-slate-800/80 flex flex-col justify-between p-4 z-10">
-        <div className="space-y-6">
-          <div className="flex items-center space-x-3 px-2 pt-2">
-            <div className="p-2.5 bg-gradient-to-tr from-teal-600 to-cyan-500 text-white rounded-xl shadow-lg shadow-teal-500/20">
-              <Server className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="font-bold text-lg leading-none text-slate-100 tracking-tight">flexiManage</h1>
-              <span className="text-[11px] text-teal-400 font-medium">Controller Console</span>
-            </div>
+      {/* flexiManage Left Sidebar */}
+      <aside className="w-64 bg-[#1f4e5b] text-slate-100 flex flex-col justify-between border-r border-slate-700 shadow-lg z-10">
+        <div className="space-y-4">
+          
+          {/* Logo Header */}
+          <div className="h-16 px-5 border-b border-slate-700/80 flex items-center space-x-2">
+            <svg className="w-7 h-7" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 30C20 30 35 70 50 70C65 70 80 30 80 30" stroke="#3b9395" strokeWidth="18" strokeLinecap="round" />
+              <path d="M35 30C35 30 45 55 50 55C55 55 65 30 65 30" stroke="#ffffff" strokeWidth="12" strokeLinecap="round" />
+            </svg>
+            <span className="text-xl font-bold tracking-tight text-white">
+              flexi<span className="text-[#3b9395]">Manage</span>
+            </span>
           </div>
 
-          <nav className="space-y-1">
-            <button 
-              onClick={() => setActiveTab('devices')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer ${
-                activeTab === 'devices' ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/20' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <Radio className="w-4 h-4" />
-                <span>Devices & Edge</span>
-              </div>
-              <span className="bg-slate-950/60 text-slate-300 px-2 py-0.5 rounded-full font-mono text-[10px]">{devices.length}</span>
-            </button>
+          {/* flexiManage 5.2.1 Sidebar Categories */}
+          <nav className="px-3 space-y-4 text-xs font-medium">
+            
+            {/* Category 1: Overview */}
+            <div>
+              <div className="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 tracking-wider">Overview</div>
+              <button 
+                onClick={() => setActiveMenu('home')}
+                className={`w-full flex items-center space-x-3 px-3 py-2 rounded transition cursor-pointer ${
+                  activeMenu === 'home' ? 'bg-[#00797b] text-white font-semibold' : 'text-slate-300 hover:bg-slate-700/50'
+                }`}
+              >
+                <Activity className="w-4 h-4" />
+                <span>Home & Onboarding</span>
+              </button>
+            </div>
 
-            <button 
-              onClick={() => setActiveTab('topology')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer ${
-                activeTab === 'topology' ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/20' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <Layers className="w-4 h-4" />
-                <span>Topology Map</span>
-              </div>
-              <span className="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-mono text-[10px]">Live</span>
-            </button>
+            {/* Category 2: Inventory */}
+            <div>
+              <div className="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 tracking-wider">Inventory</div>
+              <div className="space-y-0.5">
+                <button 
+                  onClick={() => setActiveMenu('devices')}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded transition cursor-pointer ${
+                    activeMenu === 'devices' ? 'bg-[#00797b] text-white font-semibold' : 'text-slate-300 hover:bg-slate-700/50'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Radio className="w-4 h-4" />
+                    <span>Devices</span>
+                  </div>
+                  <span className="bg-slate-800/80 px-2 py-0.5 rounded text-[10px] text-slate-300">{devices.length}</span>
+                </button>
 
-            <button 
-              onClick={() => setActiveTab('tunnels')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer ${
-                activeTab === 'tunnels' ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/20' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <Link2 className="w-4 h-4" />
-                <span>Mesh Tunnels</span>
+                <button 
+                  onClick={() => setActiveMenu('tokens')}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded transition cursor-pointer ${
+                    activeMenu === 'tokens' ? 'bg-[#00797b] text-white font-semibold' : 'text-slate-300 hover:bg-slate-700/50'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Key className="w-4 h-4" />
+                    <span>Tokens</span>
+                  </div>
+                  <span className="bg-slate-800/80 px-2 py-0.5 rounded text-[10px] text-slate-300">{accountTokens.length}</span>
+                </button>
               </div>
-              <span className="bg-slate-950/60 text-slate-300 px-2 py-0.5 rounded-full font-mono text-[10px]">{tunnels.length}</span>
-            </button>
+            </div>
 
-            <button 
-              onClick={() => setActiveTab('tokens')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer ${
-                activeTab === 'tokens' ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/20' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <Key className="w-4 h-4" />
-                <span>Account Tokens</span>
+            {/* Category 3: Network & Tunnels */}
+            <div>
+              <div className="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 tracking-wider">Network</div>
+              <div className="space-y-0.5">
+                <button 
+                  onClick={() => setActiveMenu('tunnels')}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded transition cursor-pointer ${
+                    activeMenu === 'tunnels' ? 'bg-[#00797b] text-white font-semibold' : 'text-slate-300 hover:bg-slate-700/50'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Link2 className="w-4 h-4" />
+                    <span>Tunnels</span>
+                  </div>
+                  <span className="bg-slate-800/80 px-2 py-0.5 rounded text-[10px] text-slate-300">{tunnels.length}</span>
+                </button>
+
+                <button 
+                  onClick={() => setActiveMenu('topology')}
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded transition cursor-pointer ${
+                    activeMenu === 'topology' ? 'bg-[#00797b] text-white font-semibold' : 'text-slate-300 hover:bg-slate-700/50'
+                  }`}
+                >
+                  <Layers className="w-4 h-4" />
+                  <span>Topology Map</span>
+                </button>
               </div>
-              <span className="bg-slate-950/60 text-slate-300 px-2 py-0.5 rounded-full font-mono text-[10px]">{accountTokens.length}</span>
-            </button>
+            </div>
 
-            <button 
-              onClick={() => setActiveTab('policies')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer ${
-                activeTab === 'policies' ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/20' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
+            {/* Category 4: Security & Policies */}
+            <div>
+              <div className="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 tracking-wider">Security & Policies</div>
+              <button 
+                onClick={() => setActiveMenu('policies')}
+                className={`w-full flex items-center space-x-3 px-3 py-2 rounded transition cursor-pointer ${
+                  activeMenu === 'policies' ? 'bg-[#00797b] text-white font-semibold' : 'text-slate-300 hover:bg-slate-700/50'
+                }`}
+              >
                 <ShieldCheck className="w-4 h-4" />
-                <span>Traffic Policies</span>
-              </div>
-            </button>
+                <span>Path Selection Policies</span>
+              </button>
+            </div>
+
           </nav>
         </div>
 
-        <div className="bg-slate-950/90 p-3.5 rounded-2xl border border-slate-800 space-y-3">
+        {/* User Account Info Footer */}
+        <div className="p-4 border-t border-slate-700/80 bg-slate-900/40 space-y-3">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-tr from-teal-600 to-cyan-500 rounded-full flex items-center justify-center text-xs font-bold text-white shadow">
+            <div className="w-8 h-8 bg-[#00797b] rounded-full flex items-center justify-center text-xs font-bold text-white shadow">
               AD
             </div>
             <div className="overflow-hidden">
-              <p className="text-xs font-semibold text-slate-200 truncate">{username || 'Administrator'}</p>
-              <span className="text-[10px] text-emerald-400 font-semibold flex items-center space-x-1">
+              <p className="text-xs font-semibold text-white truncate">{username || 'Administrator'}</p>
+              <span className="text-[10px] text-emerald-400 font-medium flex items-center space-x-1">
                 <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                <span>Active JWT Session</span>
+                <span>flexiManage 5.2.1</span>
               </span>
             </div>
           </div>
           <button 
             onClick={handleLogout}
-            className="w-full bg-slate-900 hover:bg-red-500/10 hover:text-red-400 text-slate-400 text-xs font-medium py-2 rounded-xl border border-slate-800 flex items-center justify-center space-x-2 transition cursor-pointer"
+            className="w-full bg-slate-800 hover:bg-red-900/40 text-slate-300 hover:text-red-300 text-xs font-medium py-1.5 rounded flex items-center justify-center space-x-2 transition cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>
@@ -796,108 +832,108 @@ export default function App() {
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto flex flex-col bg-slate-950">
+      {/* Main Content View */}
+      <main className="flex-1 overflow-y-auto flex flex-col bg-slate-50">
         
         {/* Top App Header */}
-        <header className="bg-slate-900/60 border-b border-slate-800/80 px-8 py-4 flex items-center justify-between backdrop-blur-md">
+        <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shadow-sm">
           <div>
-            <h2 className="text-xl font-bold text-slate-100 tracking-tight">
-              {activeTab === 'devices' && 'Edge Device Management'}
-              {activeTab === 'topology' && 'Mesh Network Topology Visualizer'}
-              {activeTab === 'tunnels' && 'SD-WAN Mesh Tunnels'}
-              {activeTab === 'tokens' && 'Organization Account Tokens'}
-              {activeTab === 'policies' && 'Global Traffic Policies & QoS'}
+            <h2 className="text-lg font-bold text-slate-800">
+              {activeMenu === 'home' && 'flexiManage Home & Installation Steps'}
+              {activeMenu === 'devices' && 'Inventory > Devices'}
+              {activeMenu === 'tokens' && 'Inventory > Account Tokens'}
+              {activeMenu === 'tunnels' && 'Network > SD-WAN Tunnels'}
+              {activeMenu === 'topology' && 'Network > Mesh Topology Map'}
+              {activeMenu === 'policies' && 'Security & Policies > Path Selection'}
             </h2>
-            <p className="text-xs text-slate-400">FlexiWAN 5.2.1 Centralized Management Engine</p>
+            <p className="text-xs text-slate-500">flexiWAN Release 5.2.1 Centralized Controller</p>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             <button
               onClick={() => { refreshAllData(); showToast('Data refreshed', 'info'); }}
-              className="p-2 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-800 transition cursor-pointer"
+              className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition cursor-pointer"
               title="Refresh Controller Data"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
-            <div className="bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 flex items-center space-x-2">
-              <Cpu className="w-4 h-4 text-teal-400" />
-              <span className="text-xs text-slate-300 font-medium">vRouter 5.2.1</span>
+            <div className="bg-slate-100 px-3 py-1 rounded border border-slate-200 flex items-center space-x-2 text-xs font-medium text-slate-700">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+              <span>Organization Active</span>
             </div>
           </div>
         </header>
 
-        {/* Quick Stats Metrics Bar */}
-        <div className="px-8 pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 flex items-center space-x-4 shadow-lg">
-              <div className="p-3 bg-teal-500/10 text-teal-400 rounded-xl border border-teal-500/20">
-                <Radio className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Devices</p>
-                <p className="text-2xl font-bold text-slate-100">{devices.length}</p>
-              </div>
-            </div>
-
-            <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 flex items-center space-x-4 shadow-lg">
-              <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
-                <Play className="w-5 h-5 fill-emerald-400" />
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">vRouters Running</p>
-                <p className="text-2xl font-bold text-emerald-400">{runningDevicesCount}</p>
-              </div>
-            </div>
-
-            <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 flex items-center space-x-4 shadow-lg">
-              <div className="p-3 bg-cyan-500/10 text-cyan-400 rounded-xl border border-cyan-500/20">
-                <Link2 className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Active Tunnels</p>
-                <p className="text-2xl font-bold text-cyan-400">{activeTunnelsCount}</p>
-              </div>
-            </div>
-
-            <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 flex items-center space-x-4 shadow-lg">
-              <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl border border-blue-500/20">
-                <Globe className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">STUN Status</p>
-                <p className="text-sm font-bold text-blue-300">Full Cone NAT</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        {/* Content Area */}
         <div className="p-8 flex-1">
-          
-          {/* TAB 1: DEVICES & EDGE NODES */}
-          {activeTab === 'devices' && (
+
+          {/* HOME ONBOARDING TAB (MATCHES FLEXIMANAGE HOME PAGE) */}
+          {activeMenu === 'home' && (
+            <div className="space-y-6">
+              <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm space-y-4">
+                <h3 className="text-base font-bold text-slate-800">flexiEdge Installation & Setup Flow</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Follow these 3 steps to connect physical or virtual flexiEdge routers to your flexiManage account:
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                  <div className="border border-slate-200 p-5 rounded-lg bg-slate-50 space-y-3">
+                    <div className="w-8 h-8 bg-[#00797b] text-white rounded-full flex items-center justify-center font-bold text-sm">1</div>
+                    <h4 className="font-bold text-sm text-slate-800">Create Account Token</h4>
+                    <p className="text-xs text-slate-600">Navigate to Inventory &gt; Tokens page and click "New Token". Copy the token to use on your devices.</p>
+                    <button onClick={() => setActiveMenu('tokens')} className="text-xs text-[#00797b] font-semibold hover:underline flex items-center space-x-1">
+                      <span>Go to Tokens</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="border border-slate-200 p-5 rounded-lg bg-slate-50 space-y-3">
+                    <div className="w-8 h-8 bg-[#00797b] text-white rounded-full flex items-center justify-center font-bold text-sm">2</div>
+                    <h4 className="font-bold text-sm text-slate-800">Register & Approve Device</h4>
+                    <p className="text-xs text-slate-600">Paste your token into your flexiEdge router's local UI (port 8080) or CLI. Approve the device under Inventory &gt; Devices.</p>
+                    <button onClick={() => setActiveMenu('devices')} className="text-xs text-[#00797b] font-semibold hover:underline flex items-center space-x-1">
+                      <span>Go to Devices</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="border border-slate-200 p-5 rounded-lg bg-slate-50 space-y-3">
+                    <div className="w-8 h-8 bg-[#00797b] text-white rounded-full flex items-center justify-center font-bold text-sm">3</div>
+                    <h4 className="font-bold text-sm text-slate-800">Create Mesh Tunnels</h4>
+                    <p className="text-xs text-slate-600">Assign network interfaces and create encrypted SD-WAN mesh tunnels between your approved flexiEdge sites.</p>
+                    <button onClick={() => setActiveMenu('tunnels')} className="text-xs text-[#00797b] font-semibold hover:underline flex items-center space-x-1">
+                      <span>Go to Tunnels</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* INVENTORY > DEVICES TAB */}
+          {activeMenu === 'devices' && (
             <div className="space-y-6">
               
-              {/* Search & Filter Bar */}
-              <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+              {/* Toolbar */}
+              <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
                 <div className="flex items-center space-x-3 flex-1 max-w-md">
                   <div className="relative flex-1">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                     <input 
                       type="text" 
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search devices by name, IP, or machine ID..."
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition"
+                      placeholder="Filter devices..."
+                      className="w-full bg-white border border-slate-300 rounded pl-9 pr-4 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-[#00797b]"
                     />
                   </div>
-                  
                   <select 
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="bg-slate-900 border border-slate-800 text-xs text-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:border-teal-500"
+                    className="bg-white border border-slate-300 text-xs text-slate-700 rounded px-3 py-1.5 focus:outline-none focus:border-[#00797b]"
                   >
-                    <option value="all">All Statuses</option>
+                    <option value="all">All Devices</option>
                     <option value="running">Running</option>
                     <option value="stopped">Stopped</option>
                   </select>
@@ -905,24 +941,25 @@ export default function App() {
 
                 <button
                   onClick={() => setShowAddDeviceModal(true)}
-                  className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition shadow-lg shadow-teal-500/20 flex items-center justify-center space-x-2 cursor-pointer"
+                  className="bg-[#00797b] hover:bg-[#006062] text-white px-4 py-2 rounded text-xs font-medium transition shadow-sm flex items-center justify-center space-x-2 cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Register Device via Web</span>
                 </button>
               </div>
 
-              <div className="bg-slate-900/90 rounded-2xl border border-slate-800/80 overflow-hidden shadow-2xl">
+              {/* Devices Table */}
+              <div className="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
                 {filteredDevices.length === 0 ? (
                   <div className="p-12 text-center flex flex-col items-center justify-center space-y-3">
-                    <Radio className="w-10 h-10 text-slate-600 stroke-1" />
-                    <h4 className="text-slate-300 font-semibold text-base">No Matching Devices Found</h4>
-                    <p className="text-slate-400 text-xs max-w-md">
-                      No edge router nodes match your search query. Click "Register Device via Web" or copy your Account Token to connect your first edge router node.
+                    <Radio className="w-10 h-10 text-slate-400 stroke-1" />
+                    <h4 className="text-slate-700 font-bold text-base">No Devices Found</h4>
+                    <p className="text-slate-500 text-xs max-w-md">
+                      No registered flexiEdge router devices yet. Click "Register Device via Web" or copy your Organization Token to connect your first router.
                     </p>
                     <button
                       onClick={() => setShowAddDeviceModal(true)}
-                      className="mt-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer"
+                      className="mt-2 bg-[#00797b]/10 text-[#00797b] hover:bg-[#00797b]/20 px-4 py-2 rounded text-xs font-semibold cursor-pointer"
                     >
                       Register Device Now
                     </button>
@@ -930,64 +967,64 @@ export default function App() {
                 ) : (
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-slate-800 bg-slate-950/60 text-xs uppercase text-slate-400">
-                        <th className="p-4 pl-6">Device Name</th>
-                        <th className="p-4">IP Address</th>
-                        <th className="p-4">STUN NAT Traversal</th>
-                        <th className="p-4">vRouter Engine</th>
-                        <th className="p-4 text-right pr-6">Actions</th>
+                      <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-600 font-semibold">
+                        <th className="p-3.5 pl-6">Device Name</th>
+                        <th className="p-3.5">IP Address</th>
+                        <th className="p-3.5">STUN NAT Traversal</th>
+                        <th className="p-3.5">vRouter Engine</th>
+                        <th className="p-3.5 text-right pr-6">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/80 text-sm">
+                    <tbody className="divide-y divide-slate-200 text-xs">
                       {filteredDevices.map((device) => (
-                        <tr key={device._id} className="hover:bg-slate-800/40 transition-all duration-150">
-                          <td className="p-4 pl-6">
+                        <tr key={device._id} className="hover:bg-slate-50 transition">
+                          <td className="p-3.5 pl-6">
                             <button 
                               onClick={() => setSelectedDevice(device)}
-                              className="font-semibold text-slate-100 hover:text-teal-400 transition cursor-pointer text-left"
+                              className="font-bold text-[#00797b] hover:underline cursor-pointer text-left"
                             >
                               {device.name}
                             </button>
-                            <p className="text-[10px] text-slate-500 font-mono">{device.machineId || device._id}</p>
+                            <p className="text-[10px] text-slate-400 font-mono">{device.machineId || device._id}</p>
                           </td>
-                          <td className="p-4 font-mono text-xs text-slate-300">{device.ip || '10.200.0.10'}</td>
-                          <td className="p-4">
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-teal-500/10 text-teal-300 border border-teal-500/20">
-                              <Globe className="w-3.5 h-3.5 mr-1.5" />
+                          <td className="p-3.5 font-mono text-slate-700">{device.ip || '10.200.0.10'}</td>
+                          <td className="p-3.5">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-teal-50 text-teal-700 border border-teal-200">
+                              <Globe className="w-3 h-3 mr-1" />
                               {device.natType || 'Full Cone NAT'}
                             </span>
                           </td>
-                          <td className="p-4">
+                          <td className="p-3.5">
                             {device.status === 'stopped' ? (
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                <Square className="w-3 h-3 mr-1.5 fill-amber-400" />
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                                <Square className="w-3 h-3 mr-1 fill-amber-700" />
                                 Stopped
                               </span>
                             ) : (
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                <Play className="w-3 h-3 mr-1.5 fill-emerald-400" />
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <Play className="w-3 h-3 mr-1 fill-emerald-700" />
                                 Running
                               </span>
                             )}
                           </td>
-                          <td className="p-4 pr-6 text-right space-x-3">
+                          <td className="p-3.5 pr-6 text-right space-x-3">
                             <button
                               onClick={() => handleToggleVRouter(device)}
-                              className={`text-xs font-semibold cursor-pointer ${
-                                device.status === 'stopped' ? 'text-emerald-400 hover:text-emerald-300' : 'text-amber-400 hover:text-amber-300'
+                              className={`font-semibold cursor-pointer ${
+                                device.status === 'stopped' ? 'text-emerald-600 hover:text-emerald-700' : 'text-amber-600 hover:text-amber-700'
                               }`}
                             >
                               {device.status === 'stopped' ? 'Start Router' : 'Stop Router'}
                             </button>
                             <button 
                               onClick={() => setSelectedDevice(device)}
-                              className="text-xs text-teal-400 hover:text-teal-300 font-semibold cursor-pointer"
+                              className="text-[#00797b] hover:underline font-semibold cursor-pointer"
                             >
-                              Manage
+                              Settings
                             </button>
                             <button 
                               onClick={() => handleDeleteDevice(device._id)}
-                              className="text-xs text-red-400 hover:text-red-300 font-semibold cursor-pointer"
+                              className="text-red-600 hover:underline font-semibold cursor-pointer"
                             >
                               Delete
                             </button>
@@ -1001,170 +1038,53 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 2: TOPOLOGY VISUALIZER */}
-          {activeTab === 'topology' && (
+          {/* INVENTORY > TOKENS TAB */}
+          {activeMenu === 'tokens' && (
             <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold flex items-center space-x-2">
-                  <span>Mesh Network Topology</span>
-                  <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-mono">Live Visualizer</span>
-                </h3>
-              </div>
-
-              <div className="bg-slate-900/90 rounded-2xl border border-slate-800/80 p-8 shadow-2xl relative overflow-hidden min-h-[420px] flex items-center justify-center">
-                {devices.length === 0 ? (
-                  <div className="text-center space-y-3">
-                    <Layers className="w-12 h-12 text-slate-600 mx-auto stroke-1" />
-                    <p className="text-slate-400 text-xs">No registered devices to display in topology map. Register 2 or more devices to visualize active SD-WAN mesh links.</p>
-                  </div>
-                ) : (
-                  <div className="w-full max-w-2xl relative flex items-center justify-around py-12">
-                    {/* SVG Mesh Tunnels Connection Line */}
-                    <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-teal-500/40" strokeWidth="2" strokeDasharray="6 6">
-                      <line x1="20%" y1="50%" x2="80%" y2="50%" className="animate-pulse" />
-                    </svg>
-
-                    {/* Device Nodes */}
-                    {devices.slice(0, 3).map((dev, idx) => (
-                      <div key={dev._id} className="relative z-10 bg-slate-950 border border-teal-500/30 p-6 rounded-2xl shadow-xl flex flex-col items-center space-y-3 text-center w-52 hover:scale-105 transition-transform duration-200">
-                        <div className="p-3 bg-gradient-to-tr from-teal-600 to-cyan-500 text-white rounded-xl shadow-md shadow-teal-500/20">
-                          <Server className="w-6 h-6" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-sm text-slate-100">{dev.name}</p>
-                          <p className="text-[10px] text-slate-400 font-mono">{dev.ip || '10.200.0.10'}</p>
-                        </div>
-                        <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                          vRouter Active
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: MESH TUNNELS */}
-          {activeTab === 'tunnels' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold flex items-center space-x-2">
-                  <span>SD-WAN Tunnels</span>
-                  <span className="text-xs bg-slate-800 px-2.5 py-0.5 rounded-full text-slate-400 font-mono">{tunnels.length}</span>
-                </h3>
-                <button
-                  onClick={() => setShowCreateTunnelModal(true)}
-                  className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition shadow-lg shadow-teal-500/20 flex items-center justify-center space-x-2 cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Create Web Tunnel</span>
-                </button>
-              </div>
-
-              <div className="bg-slate-900/90 rounded-2xl border border-slate-800/80 overflow-hidden shadow-2xl">
-                {tunnels.length === 0 ? (
-                  <div className="p-12 text-center flex flex-col items-center justify-center space-y-3">
-                    <Link2 className="w-10 h-10 text-slate-600 stroke-1" />
-                    <h4 className="text-slate-300 font-semibold text-base">No Tunnels Configured</h4>
-                    <p className="text-slate-400 text-xs max-w-md">
-                      Create encrypted mesh tunnels between registered flexiEdge devices directly from this web page.
-                    </p>
-                    <button
-                      onClick={() => setShowCreateTunnelModal(true)}
-                      className="mt-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer"
-                    >
-                      Create Tunnel Now
-                    </button>
-                  </div>
-                ) : (
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-800 bg-slate-950/60 text-xs uppercase text-slate-400">
-                        <th className="p-4 pl-6">Tunnel ID</th>
-                        <th className="p-4">Device A</th>
-                        <th className="p-4">Device B</th>
-                        <th className="p-4">Encryption</th>
-                        <th className="p-4">Status</th>
-                        <th className="p-4 text-right pr-6">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800/80 text-sm">
-                      {tunnels.map((tunnel) => (
-                        <tr key={tunnel._id} className="hover:bg-slate-800/40 transition-all duration-150">
-                          <td className="p-4 pl-6 font-mono text-xs text-teal-400">#Tunnel-{tunnel.num || 1}</td>
-                          <td className="p-4 font-semibold text-slate-200">{tunnel.deviceA?.name || 'Device A'}</td>
-                          <td className="p-4 font-semibold text-slate-200">{tunnel.deviceB?.name || 'Device B'}</td>
-                          <td className="p-4 uppercase text-xs font-semibold text-slate-400">{tunnel.encryptionMethod || 'PSK'}</td>
-                          <td className="p-4">
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                              Connected
-                            </span>
-                          </td>
-                          <td className="p-4 pr-6 text-right">
-                            <button 
-                              onClick={() => handleDeleteTunnel(tunnel._id)}
-                              className="text-xs text-red-400 hover:text-red-300 font-semibold cursor-pointer"
-                            >
-                              Deactivate
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* TAB 4: ACCOUNT & REGISTRATION TOKENS */}
-          {activeTab === 'tokens' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold flex items-center space-x-2">
-                  <span>Organization Account Tokens</span>
-                  <span className="text-xs bg-slate-800 px-2.5 py-0.5 rounded-full text-slate-400 font-mono">{accountTokens.length}</span>
-                </h3>
+              <div className="flex justify-between items-center bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                <div>
+                  <h3 className="font-bold text-slate-800 text-sm">Organization Tokens</h3>
+                  <p className="text-xs text-slate-500">Organization tokens authenticate edge routers connecting to this flexiManage account</p>
+                </div>
                 <button
                   onClick={() => setShowCreateTokenModal(true)}
-                  className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition shadow-lg shadow-teal-500/20 flex items-center justify-center space-x-2 cursor-pointer"
+                  className="bg-[#00797b] hover:bg-[#006062] text-white px-4 py-2 rounded text-xs font-medium transition shadow-sm flex items-center space-x-2 cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Generate New Token</span>
+                  <span>New Token</span>
                 </button>
               </div>
 
               <div className="grid grid-cols-1 gap-4">
                 {accountTokens.length === 0 ? (
-                  <div className="bg-slate-900/90 rounded-2xl border border-slate-800/80 p-12 text-center flex flex-col items-center justify-center space-y-3">
-                    <Key className="w-10 h-10 text-slate-600 stroke-1" />
-                    <h4 className="text-slate-300 font-semibold text-base">No Account Tokens Generated</h4>
-                    <p className="text-slate-400 text-xs max-w-md">
-                      Generate an Account Token to pair physical or virtual flexiEdge router nodes to this controller organization.
+                  <div className="bg-white rounded-lg border border-slate-200 p-12 text-center flex flex-col items-center justify-center space-y-3 shadow-sm">
+                    <Key className="w-10 h-10 text-slate-400 stroke-1" />
+                    <h4 className="text-slate-700 font-bold text-base">No Tokens Created</h4>
+                    <p className="text-slate-500 text-xs max-w-md">
+                      Generate an Organization Token to pair your physical or virtual flexiEdge routers.
                     </p>
                     <button
                       onClick={() => setShowCreateTokenModal(true)}
-                      className="mt-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer"
+                      className="mt-2 bg-[#00797b]/10 text-[#00797b] hover:bg-[#00797b]/20 px-4 py-2 rounded text-xs font-semibold cursor-pointer"
                     >
-                      Generate Account Token
+                      New Token
                     </button>
                   </div>
                 ) : (
                   accountTokens.map((tok) => (
-                    <div key={tok._id} className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-lg space-y-3">
+                    <div key={tok._id} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm space-y-3">
                       <div className="flex justify-between items-center">
-                        <h4 className="font-semibold text-slate-200 text-sm flex items-center space-x-2">
-                          <Key className="w-4 h-4 text-teal-400" />
-                          <span>{tok.name || 'Organization Account Token'}</span>
+                        <h4 className="font-bold text-slate-800 text-sm flex items-center space-x-2">
+                          <Key className="w-4 h-4 text-[#00797b]" />
+                          <span>{tok.name || 'Organization Token'}</span>
                         </h4>
-                        <span className="text-[10px] bg-teal-500/10 text-teal-400 border border-teal-500/20 px-2.5 py-0.5 rounded-lg font-mono">Active</span>
+                        <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded font-mono font-semibold">Active</span>
                       </div>
-                      <div className="flex items-center bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto">
+                      <div className="flex items-center bg-slate-50 p-3 rounded border border-slate-200 font-mono text-xs text-slate-800 overflow-x-auto">
                         <span className="flex-1 truncate select-all">{tok.token || 'flexiwan-token-jwt-key'}</span>
                         <button
                           onClick={() => copyToClipboard(tok.token)}
-                          className="ml-3 p-1.5 hover:bg-slate-800 text-teal-400 rounded-lg transition cursor-pointer"
+                          className="ml-3 p-1.5 hover:bg-slate-200 text-[#00797b] rounded transition cursor-pointer"
                           title="Copy Token"
                         >
                           <Copy className="w-4 h-4" />
@@ -1177,89 +1097,204 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 5: POLICIES & GLOBAL RULES */}
-          {activeTab === 'policies' && (
+          {/* NETWORK > TUNNELS TAB */}
+          {activeMenu === 'tunnels' && (
             <div className="space-y-6">
-              <h3 className="text-lg font-semibold">Global SD-WAN Traffic Policies & Path Selection</h3>
+              <div className="flex justify-between items-center bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                <div>
+                  <h3 className="font-bold text-slate-800 text-sm">SD-WAN Mesh Tunnels</h3>
+                  <p className="text-xs text-slate-500">Manage encrypted IPsec and IP-in-IP tunnels between flexiEdge sites</p>
+                </div>
+                <button
+                  onClick={() => setShowCreateTunnelModal(true)}
+                  className="bg-[#00797b] hover:bg-[#006062] text-white px-4 py-2 rounded text-xs font-medium transition shadow-sm flex items-center space-x-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create Web Tunnel</span>
+                </button>
+              </div>
+
+              <div className="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
+                {tunnels.length === 0 ? (
+                  <div className="p-12 text-center flex flex-col items-center justify-center space-y-3">
+                    <Link2 className="w-10 h-10 text-slate-400 stroke-1" />
+                    <h4 className="text-slate-700 font-bold text-base">No Tunnels Configured</h4>
+                    <p className="text-slate-500 text-xs max-w-md">
+                      Create encrypted mesh tunnels between registered flexiEdge devices directly from flexiManage.
+                    </p>
+                    <button
+                      onClick={() => setShowCreateTunnelModal(true)}
+                      className="mt-2 bg-[#00797b]/10 text-[#00797b] hover:bg-[#00797b]/20 px-4 py-2 rounded text-xs font-semibold cursor-pointer"
+                    >
+                      Create Tunnel Now
+                    </button>
+                  </div>
+                ) : (
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-600 font-semibold">
+                        <th className="p-3.5 pl-6">Tunnel ID</th>
+                        <th className="p-3.5">Device A</th>
+                        <th className="p-3.5">Device B</th>
+                        <th className="p-3.5">Encryption</th>
+                        <th className="p-3.5">Status</th>
+                        <th className="p-3.5 text-right pr-6">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 text-xs">
+                      {tunnels.map((tunnel) => (
+                        <tr key={tunnel._id} className="hover:bg-slate-50 transition">
+                          <td className="p-3.5 pl-6 font-mono font-bold text-[#00797b]">#Tunnel-{tunnel.num || 1}</td>
+                          <td className="p-3.5 font-semibold text-slate-800">{tunnel.deviceA?.name || 'Device A'}</td>
+                          <td className="p-3.5 font-semibold text-slate-800">{tunnel.deviceB?.name || 'Device B'}</td>
+                          <td className="p-3.5 uppercase font-semibold text-slate-600">{tunnel.encryptionMethod || 'PSK'}</td>
+                          <td className="p-3.5">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              Connected
+                            </span>
+                          </td>
+                          <td className="p-3.5 pr-6 text-right">
+                            <button 
+                              onClick={() => handleDeleteTunnel(tunnel._id)}
+                              className="text-red-600 hover:underline font-semibold cursor-pointer"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TOPOLOGY MAP TAB */}
+          {activeMenu === 'topology' && (
+            <div className="space-y-6">
+              <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                <h3 className="font-bold text-slate-800 text-sm">SD-WAN Mesh Topology Map</h3>
+                <p className="text-xs text-slate-500">Visual topology graph of active edge router sites and encrypted tunnels</p>
+              </div>
+
+              <div className="bg-white rounded-lg border border-slate-200 p-8 shadow-sm relative min-h-[400px] flex items-center justify-center">
+                {devices.length === 0 ? (
+                  <div className="text-center space-y-3">
+                    <Layers className="w-12 h-12 text-slate-400 mx-auto stroke-1" />
+                    <p className="text-slate-500 text-xs">No registered devices to display in topology map.</p>
+                  </div>
+                ) : (
+                  <div className="w-full max-w-2xl relative flex items-center justify-around py-12">
+                    <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-[#00797b]/50" strokeWidth="2" strokeDasharray="6 6">
+                      <line x1="20%" y1="50%" x2="80%" y2="50%" className="animate-pulse" />
+                    </svg>
+
+                    {devices.slice(0, 3).map((dev) => (
+                      <div key={dev._id} className="relative z-10 bg-slate-50 border border-slate-300 p-6 rounded-lg shadow flex flex-col items-center space-y-3 text-center w-52">
+                        <div className="p-3 bg-[#00797b] text-white rounded-full shadow">
+                          <Server className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm text-slate-800">{dev.name}</p>
+                          <p className="text-[11px] text-slate-500 font-mono">{dev.ip || '10.200.0.10'}</p>
+                        </div>
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-semibold">
+                          vRouter Active
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* POLICIES TAB */}
+          {activeMenu === 'policies' && (
+            <div className="space-y-6">
+              <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                <h3 className="font-bold text-slate-800 text-sm">Path Selection Policies & Traffic Rules</h3>
+                <p className="text-xs text-slate-500">Configure QoS and application-based traffic steering across WAN interfaces</p>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 space-y-4 shadow-xl">
+                <div className="bg-white border border-slate-200 rounded-lg p-6 space-y-4 shadow-sm">
                   <div className="flex items-center space-x-3">
-                    <div className="p-3 bg-teal-500/10 text-teal-400 rounded-xl border border-teal-500/20">
+                    <div className="p-3 bg-teal-50 text-[#00797b] rounded-lg">
                       <ShieldCheck className="w-6 h-6" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-slate-200">Multi-WAN Traffic Routing</h4>
-                      <p className="text-xs text-slate-400">Path selection policies across edge nodes</p>
+                      <h4 className="font-bold text-slate-800">Multi-WAN Path Steering</h4>
+                      <p className="text-xs text-slate-500">Policy-based routing per application</p>
                     </div>
                   </div>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    Configure policy-based routing to dynamically steer critical application traffic across primary and backup WAN links.
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Dynamically steer voice, video, and mission-critical application traffic across lowest latency WAN links.
                   </p>
-                  <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-xs">
-                    <span className="text-slate-400">Default Policy:</span>
-                    <span className="text-teal-400 font-semibold">Load Balance (Lowest Latency)</span>
+                  <div className="pt-2 border-t border-slate-100 flex justify-between items-center text-xs">
+                    <span className="text-slate-500">Default Policy:</span>
+                    <span className="text-[#00797b] font-bold">Lowest Latency Priority</span>
                   </div>
                 </div>
 
-                <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 space-y-4 shadow-xl">
+                <div className="bg-white border border-slate-200 rounded-lg p-6 space-y-4 shadow-sm">
                   <div className="flex items-center space-x-3">
-                    <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl border border-blue-500/20">
+                    <div className="p-3 bg-blue-50 text-blue-700 rounded-lg">
                       <Settings className="w-6 h-6" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-slate-200">Firewall & Security Rules</h4>
-                      <p className="text-xs text-slate-400">Centralized access control policies</p>
+                      <h4 className="font-bold text-slate-800">Stateful Firewall Rules</h4>
+                      <p className="text-xs text-slate-500">Centralized access security rules</p>
                     </div>
                   </div>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    Enforce stateful firewall rules, NAT configurations, and access policies across all edge sites simultaneously.
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Enforce stateful firewall filtering and access control policies across all edge sites simultaneously.
                   </p>
-                  <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-xs">
-                    <span className="text-slate-400">Security Mode:</span>
-                    <span className="text-emerald-400 font-semibold">Active Protection</span>
+                  <div className="pt-2 border-t border-slate-100 flex justify-between items-center text-xs">
+                    <span className="text-slate-500">Security Engine:</span>
+                    <span className="text-emerald-700 font-bold">Active Enforcement</span>
                   </div>
                 </div>
               </div>
             </div>
           )}
+
         </div>
       </main>
 
       {/* DETAILED DEVICE MANAGEMENT DRAWER */}
       {selectedDevice && (
-        <div className="fixed inset-y-0 right-0 w-full max-w-xl bg-slate-900/95 border-l border-slate-800/90 backdrop-blur-2xl z-50 p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
+        <div className="fixed inset-y-0 right-0 w-full max-w-xl bg-white border-l border-slate-200 z-50 p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
           <div className="space-y-6">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+            <div className="flex justify-between items-center border-b border-slate-200 pb-4">
               <div>
-                <h3 className="text-lg font-bold text-slate-100 flex items-center space-x-2">
-                  <Radio className="w-5 h-5 text-teal-400" />
+                <h3 className="text-lg font-bold text-slate-800 flex items-center space-x-2">
+                  <Radio className="w-5 h-5 text-[#00797b]" />
                   <span>{selectedDevice.name}</span>
                 </h3>
-                <p className="text-xs text-slate-400 font-mono">{selectedDevice.machineId || selectedDevice._id}</p>
+                <p className="text-xs text-slate-500 font-mono">{selectedDevice.machineId || selectedDevice._id}</p>
               </div>
-              <button onClick={() => setSelectedDevice(null)} className="text-slate-400 hover:text-slate-200 cursor-pointer">
+              <button onClick={() => setSelectedDevice(null)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* vRouter Controls */}
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex justify-between items-center shadow-lg">
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 flex justify-between items-center">
               <div>
-                <span className="text-xs text-slate-400 font-medium">vRouter Engine Status</span>
+                <span className="text-xs text-slate-500 font-medium">vRouter Engine Status</span>
                 <p className="text-sm font-bold flex items-center space-x-2 mt-0.5">
-                  <span className={`w-2.5 h-2.5 rounded-full ${selectedDevice.status === 'stopped' ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'}`}></span>
-                  <span className={selectedDevice.status === 'stopped' ? 'text-amber-400' : 'text-emerald-400'}>
+                  <span className={`w-2.5 h-2.5 rounded-full ${selectedDevice.status === 'stopped' ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`}></span>
+                  <span className={selectedDevice.status === 'stopped' ? 'text-amber-700' : 'text-emerald-700'}>
                     {selectedDevice.status === 'stopped' ? 'vRouter Stopped' : 'vRouter Running'}
                   </span>
                 </p>
               </div>
               <button
                 onClick={() => handleToggleVRouter(selectedDevice)}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center space-x-2 transition cursor-pointer ${
-                  selectedDevice.status === 'stopped'
-                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                    : 'bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-500/20'
+                className={`px-4 py-2 rounded text-xs font-bold flex items-center space-x-2 transition cursor-pointer text-white ${
+                  selectedDevice.status === 'stopped' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700'
                 }`}
               >
                 {selectedDevice.status === 'stopped' ? <Play className="w-4 h-4 fill-white" /> : <Square className="w-4 h-4 fill-white" />}
@@ -1267,29 +1302,29 @@ export default function App() {
               </button>
             </div>
 
-            {/* Tabs for Device Config */}
-            <div className="flex border-b border-slate-800 text-xs font-semibold space-x-4">
+            {/* Tabs */}
+            <div className="flex border-b border-slate-200 text-xs font-semibold space-x-4">
               <button 
                 onClick={() => setDeviceTab('interfaces')} 
-                className={`pb-2 border-b-2 transition ${deviceTab === 'interfaces' ? 'border-teal-400 text-teal-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+                className={`pb-2 border-b-2 transition ${deviceTab === 'interfaces' ? 'border-[#00797b] text-[#00797b]' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
               >
-                Network Interfaces
+                Interfaces
               </button>
               <button 
                 onClick={() => setDeviceTab('checker')} 
-                className={`pb-2 border-b-2 transition ${deviceTab === 'checker' ? 'border-teal-400 text-teal-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+                className={`pb-2 border-b-2 transition ${deviceTab === 'checker' ? 'border-[#00797b] text-[#00797b]' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
               >
                 System Checker
               </button>
               <button 
                 onClick={() => setDeviceTab('wan')} 
-                className={`pb-2 border-b-2 transition ${deviceTab === 'wan' ? 'border-teal-400 text-teal-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+                className={`pb-2 border-b-2 transition ${deviceTab === 'wan' ? 'border-[#00797b] text-[#00797b]' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
               >
-                STUN & Failover
+                STUN & NAT
               </button>
               <button 
                 onClick={() => setDeviceTab('wifi_lte')} 
-                className={`pb-2 border-b-2 transition ${deviceTab === 'wifi_lte' ? 'border-teal-400 text-teal-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+                className={`pb-2 border-b-2 transition ${deviceTab === 'wifi_lte' ? 'border-[#00797b] text-[#00797b]' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
               >
                 LTE & WiFi AP
               </button>
@@ -1299,29 +1334,29 @@ export default function App() {
             {deviceTab === 'interfaces' && (
               <div className="space-y-4 text-xs">
                 <div className="flex justify-between items-center">
-                  <h4 className="font-semibold text-slate-200">Wired Interfaces</h4>
-                  <span className="text-[10px] text-teal-400 font-mono">Netplan Auto-Synced</span>
+                  <h4 className="font-bold text-slate-800">Wired Netplan Interfaces</h4>
+                  <span className="text-[10px] text-[#00797b] font-mono font-semibold">Netplan Auto-Synced</span>
                 </div>
                 <div className="space-y-2">
                   {(selectedDevice.interfaces || [
                     { name: 'eth0', type: 'WAN', assigned: true, ip: selectedDevice.ip || '10.200.0.10', mtu: 1500, metric: 10, gwStatus: 'online' },
                     { name: 'eth1', type: 'LAN', assigned: true, ip: '192.168.10.1/24', mtu: 1500, metric: 20, gwStatus: 'online' }
                   ]).map((ifc, idx) => (
-                    <div key={idx} className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between">
+                    <div key={idx} className="bg-slate-50 p-3.5 rounded border border-slate-200 flex items-center justify-between">
                       <div className="space-y-0.5">
                         <div className="flex items-center space-x-2">
-                          <span className="font-bold text-slate-200">{ifc.name}</span>
-                          <span className={`px-2 py-0.2 text-[10px] font-semibold rounded ${ifc.type === 'WAN' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
+                          <span className="font-bold text-slate-800">{ifc.name}</span>
+                          <span className={`px-2 py-0.2 text-[10px] font-semibold rounded ${ifc.type === 'WAN' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'}`}>
                             {ifc.type}
                           </span>
                         </div>
-                        <p className="font-mono text-[11px] text-slate-400">{ifc.ip}</p>
+                        <p className="font-mono text-[11px] text-slate-600">{ifc.ip}</p>
                       </div>
                       <div className="text-right space-y-1">
-                        <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono">MTU: {ifc.mtu || 1500}</span>
-                        <div className="flex items-center space-x-1 text-[10px] text-emerald-400">
-                          <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
-                          <span>Gateway Online</span>
+                        <span className="text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-700 font-mono">MTU: {ifc.mtu || 1500}</span>
+                        <div className="flex items-center space-x-1 text-[10px] text-emerald-700">
+                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                          <span>Online</span>
                         </div>
                       </div>
                     </div>
@@ -1334,47 +1369,47 @@ export default function App() {
             {deviceTab === 'checker' && (
               <div className="space-y-4 text-xs">
                 <div className="flex justify-between items-center">
-                  <h4 className="font-semibold text-slate-200">Pre-Flight System Checker</h4>
+                  <h4 className="font-bold text-slate-800">Pre-Flight System Checker</h4>
                   <button
-                    onClick={() => showToast('System checker passed: All hardware requirements met', 'success')}
-                    className="bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 px-3 py-1 rounded-xl text-xs font-semibold cursor-pointer"
+                    onClick={() => showToast('System checker passed: All requirements met', 'success')}
+                    className="bg-[#00797b]/10 text-[#00797b] border border-[#00797b]/30 px-3 py-1 rounded text-xs font-semibold cursor-pointer"
                   >
                     Run Checker
                   </button>
                 </div>
                 <div className="space-y-2">
                   {checkerResults.map((check, idx) => (
-                    <div key={idx} className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between">
+                    <div key={idx} className="bg-slate-50 p-3.5 rounded border border-slate-200 flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                         <div>
-                          <p className="font-semibold text-slate-200">{check.name}</p>
-                          <p className="text-[10px] text-slate-400">{check.detail}</p>
+                          <p className="font-bold text-slate-800">{check.name}</p>
+                          <p className="text-[10px] text-slate-500">{check.detail}</p>
                         </div>
                       </div>
-                      <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-lg font-mono">Passed</span>
+                      <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-mono font-semibold">Passed</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Tab 3: STUN & Failover */}
+            {/* Tab 3: STUN & NAT */}
             {deviceTab === 'wan' && (
               <div className="space-y-4 text-xs">
-                <h4 className="font-semibold text-slate-200">STUN NAT Traversal & Failover Metrics</h4>
-                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                <h4 className="font-bold text-slate-800">STUN NAT Traversal & Failover Metrics</h4>
+                <div className="bg-slate-50 p-4 rounded border border-slate-200 space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Detected NAT Mode:</span>
-                    <span className="text-teal-400 font-semibold">{selectedDevice.natType || 'Full Cone NAT'}</span>
+                    <span className="text-slate-600">Detected NAT Mode:</span>
+                    <span className="text-[#00797b] font-bold">{selectedDevice.natType || 'Full Cone NAT'}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-400">STUN Public IP:</span>
-                    <span className="font-mono text-slate-200">{selectedDevice.publicIp || selectedDevice.ip || '10.200.0.10'}</span>
+                    <span className="text-slate-600">STUN Public IP:</span>
+                    <span className="font-mono text-slate-800">{selectedDevice.publicIp || selectedDevice.ip || '10.200.0.10'}</span>
                   </div>
-                  <div className="flex justify-between items-center border-t border-slate-800 pt-2">
-                    <span className="text-slate-400">Multi-WAN Failover Metric:</span>
-                    <span className="text-emerald-400 font-mono font-bold">10 (Primary WAN)</span>
+                  <div className="flex justify-between items-center border-t border-slate-200 pt-2">
+                    <span className="text-slate-600">Multi-WAN Failover Metric:</span>
+                    <span className="text-emerald-700 font-mono font-bold">10 (Primary WAN)</span>
                   </div>
                 </div>
               </div>
@@ -1383,32 +1418,32 @@ export default function App() {
             {/* Tab 4: LTE & WiFi */}
             {deviceTab === 'wifi_lte' && (
               <div className="space-y-4 text-xs">
-                <h4 className="font-semibold text-slate-200">LTE & Wireless Access Point Configuration</h4>
-                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
-                  <div className="flex items-center space-x-2 text-teal-400 font-bold">
+                <h4 className="font-bold text-slate-800">LTE & Wireless Access Point Configuration</h4>
+                <div className="bg-slate-50 p-4 rounded border border-slate-200 space-y-3">
+                  <div className="flex items-center space-x-2 text-[#00797b] font-bold">
                     <Smartphone className="w-4 h-4" />
                     <span>LTE Modem (Sierra / Quectel MBIM)</span>
                   </div>
-                  <p className="text-slate-400">APN: <span className="text-slate-200 font-mono">internet.telecom</span> | PIN: <span className="text-slate-200 font-mono">••••</span></p>
+                  <p className="text-slate-600">APN: <span className="text-slate-800 font-mono">internet.telecom</span> | PIN: <span className="text-slate-800 font-mono">••••</span></p>
                 </div>
 
-                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
-                  <div className="flex items-center space-x-2 text-teal-400 font-bold">
+                <div className="bg-slate-50 p-4 rounded border border-slate-200 space-y-3">
+                  <div className="flex items-center space-x-2 text-[#00797b] font-bold">
                     <Wifi className="w-4 h-4" />
                     <span>WiFi AP Hostapd (2.4GHz / 5GHz)</span>
                   </div>
-                  <p className="text-slate-400">SSID: <span className="text-slate-200 font-mono">flexiEdge-Branch</span> | Security: <span className="text-slate-200">WPA2-PSK</span></p>
+                  <p className="text-slate-600">SSID: <span className="text-slate-800 font-mono">flexiEdge-Branch</span> | Security: <span className="text-slate-800 font-medium">WPA2-PSK</span></p>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="pt-6 border-t border-slate-800 flex justify-end">
+          <div className="pt-6 border-t border-slate-200 flex justify-end">
             <button
               onClick={() => setSelectedDevice(null)}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold text-xs cursor-pointer"
+              className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded font-semibold text-xs cursor-pointer"
             >
-              Close Management Panel
+              Close Settings
             </button>
           </div>
         </div>
@@ -1416,51 +1451,51 @@ export default function App() {
 
       {/* MODAL 1: REGISTER DEVICE */}
       {showAddDeviceModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-slate-100 flex items-center space-x-2">
-                <Radio className="w-5 h-5 text-teal-400" />
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 w-full max-w-md rounded-lg p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+              <h3 className="font-bold text-slate-800 flex items-center space-x-2">
+                <Radio className="w-5 h-5 text-[#00797b]" />
                 <span>Register flexiEdge Device</span>
               </h3>
-              <button onClick={() => setShowAddDeviceModal(false)} className="text-slate-400 hover:text-slate-200 cursor-pointer">
+              <button onClick={() => setShowAddDeviceModal(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleAddDevice} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 mb-1 font-semibold">Device Name *</label>
+                <label className="block text-slate-700 mb-1 font-semibold">Device Name *</label>
                 <input 
                   type="text" 
                   value={newDevName}
                   onChange={(e) => setNewDevName(e.target.value)}
                   required
                   placeholder="e.g. Branch-Router-01"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                  className="w-full bg-white border border-slate-300 rounded px-3 py-2 text-slate-800 focus:outline-none focus:border-[#00797b]"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 mb-1 font-semibold">IP Address / Hostname *</label>
+                <label className="block text-slate-700 mb-1 font-semibold">IP Address / Hostname *</label>
                 <input 
                   type="text" 
                   value={newDevIp}
                   onChange={(e) => setNewDevIp(e.target.value)}
                   required
                   placeholder="e.g. 10.200.0.10"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                  className="w-full bg-white border border-slate-300 rounded px-3 py-2 text-slate-800 focus:outline-none focus:border-[#00797b]"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 mb-1 font-semibold">Hardware / Machine ID (Optional)</label>
+                <label className="block text-slate-700 mb-1 font-semibold">Hardware / Machine ID (Optional)</label>
                 <input 
                   type="text" 
                   value={newDevMachineId}
                   onChange={(e) => setNewDevMachineId(e.target.value)}
                   placeholder="e.g. mac-edge-001"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                  className="w-full bg-white border border-slate-300 rounded px-3 py-2 text-slate-800 focus:outline-none focus:border-[#00797b]"
                 />
               </div>
 
@@ -1468,14 +1503,14 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setShowAddDeviceModal(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 text-white rounded-xl font-semibold cursor-pointer"
+                  className="px-4 py-2 bg-[#00797b] hover:bg-[#006062] text-white rounded font-semibold cursor-pointer"
                 >
                   Register Device
                 </button>
@@ -1487,26 +1522,26 @@ export default function App() {
 
       {/* MODAL 2: CREATE TUNNEL */}
       {showCreateTunnelModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-slate-100 flex items-center space-x-2">
-                <Link2 className="w-5 h-5 text-teal-400" />
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 w-full max-w-md rounded-lg p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+              <h3 className="font-bold text-slate-800 flex items-center space-x-2">
+                <Link2 className="w-5 h-5 text-[#00797b]" />
                 <span>Create Mesh Tunnel</span>
               </h3>
-              <button onClick={() => setShowCreateTunnelModal(false)} className="text-slate-400 hover:text-slate-200 cursor-pointer">
+              <button onClick={() => setShowCreateTunnelModal(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateTunnel} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 mb-1 font-semibold">Device A *</label>
+                <label className="block text-slate-700 mb-1 font-semibold">Device A *</label>
                 <select 
                   value={tunnelDevA}
                   onChange={(e) => setTunnelDevA(e.target.value)}
                   required
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                  className="w-full bg-white border border-slate-300 rounded px-3 py-2 text-slate-800 focus:outline-none focus:border-[#00797b]"
                 >
                   <option value="">-- Select Device A --</option>
                   {devices.map(d => (
@@ -1516,12 +1551,12 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-slate-300 mb-1 font-semibold">Device B *</label>
+                <label className="block text-slate-700 mb-1 font-semibold">Device B *</label>
                 <select 
                   value={tunnelDevB}
                   onChange={(e) => setTunnelDevB(e.target.value)}
                   required
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                  className="w-full bg-white border border-slate-300 rounded px-3 py-2 text-slate-800 focus:outline-none focus:border-[#00797b]"
                 >
                   <option value="">-- Select Device B --</option>
                   {devices.map(d => (
@@ -1531,11 +1566,11 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-slate-300 mb-1 font-semibold">Encryption Method</label>
+                <label className="block text-slate-700 mb-1 font-semibold">Encryption Method</label>
                 <select 
                   value={tunnelEnc}
                   onChange={(e) => setTunnelEnc(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                  className="w-full bg-white border border-slate-300 rounded px-3 py-2 text-slate-800 focus:outline-none focus:border-[#00797b]"
                 >
                   <option value="psk">Pre-Shared Key (PSK)</option>
                   <option value="ikev2">IKEv2 / IPsec Certificates</option>
@@ -1546,14 +1581,14 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setShowCreateTunnelModal(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 text-white rounded-xl font-semibold cursor-pointer"
+                  className="px-4 py-2 bg-[#00797b] hover:bg-[#006062] text-white rounded font-semibold cursor-pointer"
                 >
                   Create Tunnel
                 </button>
@@ -1565,28 +1600,28 @@ export default function App() {
 
       {/* MODAL 3: CREATE ACCOUNT TOKEN */}
       {showCreateTokenModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-slate-100 flex items-center space-x-2">
-                <Key className="w-5 h-5 text-teal-400" />
-                <span>Generate Account Token</span>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 w-full max-w-md rounded-lg p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+              <h3 className="font-bold text-slate-800 flex items-center space-x-2">
+                <Key className="w-5 h-5 text-[#00797b]" />
+                <span>New Organization Token</span>
               </h3>
-              <button onClick={() => setShowCreateTokenModal(false)} className="text-slate-400 hover:text-slate-200 cursor-pointer">
+              <button onClick={() => setShowCreateTokenModal(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateToken} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 mb-1 font-semibold">Token Name / Label *</label>
+                <label className="block text-slate-700 mb-1 font-semibold">Token Name / Label *</label>
                 <input 
                   type="text" 
                   value={tokenName}
                   onChange={(e) => setTokenName(e.target.value)}
                   required
                   placeholder="e.g. Main Production Token"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                  className="w-full bg-white border border-slate-300 rounded px-3 py-2 text-slate-800 focus:outline-none focus:border-[#00797b]"
                 />
               </div>
 
@@ -1594,16 +1629,16 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setShowCreateTokenModal(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 text-white rounded-xl font-semibold cursor-pointer"
+                  className="px-4 py-2 bg-[#00797b] hover:bg-[#006062] text-white rounded font-semibold cursor-pointer"
                 >
-                  Generate Token
+                  Add Token
                 </button>
               </div>
             </form>
