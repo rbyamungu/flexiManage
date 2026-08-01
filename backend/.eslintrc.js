@@ -21,6 +21,8 @@ module.exports = {
     'handle-callback-err': 'off',
     'no-trailing-spaces': 'off',
     'no-multiple-empty-lines': 'off',
+    'no-mixed-spaces-and-tabs': 'off',
+    'no-tabs': 'off',
     indent: 'off',
     'object-shorthand': 'off',
     'no-prototype-builtins': 'off',

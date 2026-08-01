@@ -235,13 +235,13 @@ const validateDevice = async (
       }
 
       try {
- 	 if (cidr.overlap(ifc1Subnet, ifc2Subnet)) {
-    	   return {
-      	      valid: false,
-      	      err: 'IP addresses of the assigned interfaces have an overlap'
-    	   };
-  	 }
-	} catch (e) {
+    if (cidr.overlap(ifc1Subnet, ifc2Subnet)) {
+         return {
+              valid: false,
+              err: 'IP addresses of the assigned interfaces have an overlap'
+         };
+     }
+  } catch (e) {
       // Ignore malformed CIDR parse errors during test runs
       }
       // prevent Public IP / WAN overlap
