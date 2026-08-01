@@ -36,12 +36,12 @@ const hostname = os.hostname();
 const createRequestEntry = (req) => {
   return req
     ? {
-      reqId: req.id,
-      user: req.userId || '',
-      ip: req.ip,
-      method: req.method,
-      url: req.url
-    }
+        reqId: req.id,
+        user: req.userId || '',
+        ip: req.ip,
+        method: req.method,
+        url: req.url
+      }
     : {};
 };
 
@@ -51,11 +51,12 @@ const createRequestEntry = (req) => {
  * @return {Object}     job log header object
  */
 const createJobEntry = (job) => {
-  return job ? {
-    id: job.id,
-    deviceId: job.data.metadata.target,
-    org: job.data.metadata.org
-  }
+  return job
+    ? {
+        id: job.id,
+        deviceId: job.data.metadata.target,
+        org: job.data.metadata.org
+      }
     : {};
 };
 
@@ -65,9 +66,10 @@ const createJobEntry = (job) => {
  * @return {Object}          periodic log header object
  */
 const createPeriodicEntry = (periodic) => {
-  return periodic ? {
-    task: periodic.task
-  }
+  return periodic
+    ? {
+        task: periodic.task
+      }
     : {};
 };
 
@@ -77,7 +79,7 @@ const createPeriodicEntry = (periodic) => {
  */
 const createEnvEntry = () => {
   return {
-    hostname: hostname
+    hostname
   };
 };
 
@@ -214,14 +216,14 @@ const enforceHeaderFields = (header) => {
 const deepObjectConvert = (obj) => {
   return (obj)
     ? (obj instanceof kue.Job)
-      ? jobLogger(obj)
-      : (obj.toJSON)
-        ? obj.toJSON()
-        : isPlainObject(obj)
-          ? mapValues(obj, deepObjectConvert)
-          : (Array.isArray(obj))
-            ? obj.map(deepObjectConvert)
-            : obj
+        ? jobLogger(obj)
+        : (obj.toJSON)
+            ? obj.toJSON()
+            : isPlainObject(obj)
+              ? mapValues(obj, deepObjectConvert)
+              : (Array.isArray(obj))
+                  ? obj.map(deepObjectConvert)
+                  : obj
     : obj;
 };
 
@@ -255,42 +257,42 @@ module.exports = function (header) {
       getLogger().error({
         message: msg,
         ctx: deepObjectConvert(ctx),
-        header: header
+        header
       });
     },
     warn: function (msg, ctx = {}) {
       getLogger().warn({
         message: msg,
         ctx: deepObjectConvert(ctx),
-        header: header
+        header
       });
     },
     info: function (msg, ctx = {}) {
       getLogger().info({
         message: msg,
         ctx: deepObjectConvert(ctx),
-        header: header
+        header
       });
     },
     verbose: function (msg, ctx = {}) {
       getLogger().verbose({
         message: msg,
         ctx: deepObjectConvert(ctx),
-        header: header
+        header
       });
     },
     debug: function (msg, ctx = {}) {
       getLogger().debug({
         message: msg,
         ctx: deepObjectConvert(ctx),
-        header: header
+        header
       });
     },
     silly: function (msg, ctx = {}) {
       getLogger().silly({
         message: msg,
         ctx: deepObjectConvert(ctx),
-        header: header
+        header
       });
     }
   };

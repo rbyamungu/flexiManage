@@ -72,9 +72,9 @@ const apply = async (device, user, data) => {
     try {
       const job = await deviceQueues.addJob(machineId, userName, org,
         // Data
-        { title: `${titlePrefix} Static Route in device ${device.hostname}`, tasks: tasks },
+        { title: `${titlePrefix} Static Route in device ${device.hostname}`, tasks },
         // Response data
-        { method: 'staticroutes', data: { deviceId: device.id, routeId: routeId, message } },
+        { method: 'staticroutes', data: { deviceId: device.id, routeId, message } },
         // Metadata
         { priority: 'normal', attempts: 1, removeOnComplete: false },
         // Complete callback
@@ -98,7 +98,7 @@ const apply = async (device, user, data) => {
  */
 const complete = async (jobId, res) => {
   if (!res || !res.deviceId || !res.message || !res.routeId) {
-    logger.warn('Got an invalid job result', { params: { result: res, jobId: jobId } });
+    logger.warn('Got an invalid job result', { params: { result: res, jobId } });
     return;
   }
   try {
@@ -123,7 +123,7 @@ const complete = async (jobId, res) => {
       );
     }
   } catch (error) {
-    logger.warn('Failed to update database', { params: { result: res, jobId: jobId } });
+    logger.warn('Failed to update database', { params: { result: res, jobId } });
   }
 };
 
@@ -136,7 +136,7 @@ const complete = async (jobId, res) => {
  * @return {void}
  */
 const error = async (jobId, res) => {
-  logger.info('Static route job failed', { params: { result: res, jobId: jobId } });
+  logger.info('Static route job failed', { params: { result: res, jobId } });
 
   try {
     if (res.message === 'remove-route') {
@@ -157,7 +157,7 @@ const error = async (jobId, res) => {
       );
     }
   } catch (error) {
-    logger.warn('Failed to update database', { params: { result: res, jobId: jobId } });
+    logger.warn('Failed to update database', { params: { result: res, jobId } });
   }
 };
 
@@ -189,8 +189,8 @@ const remove = async (job) => {
 };
 
 module.exports = {
-  apply: apply,
-  complete: complete,
-  error: error,
-  remove: remove
+  apply,
+  complete,
+  error,
+  remove
 };

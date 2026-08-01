@@ -135,7 +135,7 @@ const destinationClassificationSchema = new Schema({
       enum: ['', 'high', 'medium', 'low']
     }
   },
-  lanNat: lanNat
+  lanNat
 });
 
 // Rule schema

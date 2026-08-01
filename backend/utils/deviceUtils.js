@@ -30,7 +30,9 @@ const SHA1 = require('crypto-js/sha1');
 const getDefaultGateway = device => {
   const defaultIfc = device.interfaces.reduce((d, i) => {
     return i.type !== 'WAN' || i.routing !== 'NONE' || !i.gateway ||
-      (d && Number(d.metric) < Number(i.metric)) ? d : i;
+      (d && Number(d.metric) < Number(i.metric))
+      ? d
+      : i;
   }, false);
   return !defaultIfc ? device.defaultRoute : defaultIfc.gateway;
 };
@@ -202,8 +204,8 @@ const getCpuInfo = cpuInfo => {
   return {
     hwCores: cpuInfo?.hwCores ? parseInt(cpuInfo.hwCores) : 2,
     grubCores: cpuInfo?.grubCores ? parseInt(cpuInfo.grubCores) : 2,
-    vppCores: vppCores,
-    configuredVppCores: configuredVppCores,
+    vppCores,
+    configuredVppCores,
     powerSaving: cpuInfo?.powerSaving === true
   };
 };
@@ -329,7 +331,7 @@ const validateWifiCountryCode = (configurationReq) => {
   };
 
   if (err) {
-    return { err: err, valid: false };
+    return { err, valid: false };
   }
   return { err: '', valid: true };
 };
@@ -362,7 +364,7 @@ const validateConfiguration = (deviceInterface, configurationReq) => {
     if (intType === 'wifi') {
       const { err } = validateWifiCountryCode(configurationReq);
       if (err) {
-        return { valid: false, err: err };
+        return { valid: false, err };
       }
     }
 

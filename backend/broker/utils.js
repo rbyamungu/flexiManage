@@ -31,7 +31,7 @@ const logger = require('../logging/logging')({ module: module.filename, type: 'j
  * @return {void}
  */
 const sendMsg = (org, machineID, msg, job, curTask, tasksLength) => (inp, done) => {
-  logger.debug('Starting new task', { params: { message: msg, input: inp }, job: job });
+  logger.debug('Starting new task', { params: { message: msg, input: inp }, job });
   connections.deviceSendMessage(org, machineID, msg, undefined, job.id)
     .then((rmsg) => {
       if (rmsg !== null && rmsg.ok === 1) {
@@ -45,14 +45,14 @@ const sendMsg = (org, machineID, msg, job, curTask, tasksLength) => (inp, done) 
     }, (err) => {
       logger.error('Task failed', {
         params: { err: err.message, job: job.id },
-        job: job
+        job
       });
       done(err, false);
     })
     .catch((err) => {
       logger.error('Task failed', {
         params: { err: err.message, job: job.id },
-        job: job
+        job
       });
       done(err, false);
     });
@@ -60,5 +60,5 @@ const sendMsg = (org, machineID, msg, job, curTask, tasksLength) => (inp, done) 
 
 // Default exports
 module.exports = {
-  sendMsg: sendMsg
+  sendMsg
 };

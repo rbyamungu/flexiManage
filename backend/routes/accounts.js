@@ -148,5 +148,5 @@ accountsRouter.route('/:accountId')
 
 // Default exports
 module.exports = {
-  accountsRouter: accountsRouter
+  accountsRouter
 };

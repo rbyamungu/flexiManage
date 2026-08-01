@@ -39,7 +39,7 @@ class BillingService {
       const invoices = await flexibilling.retrieveInvoices({
         customer_id: customerId,
         offset: offsetPos,
-        limit: limit
+        limit
       });
 
       const _invoices = invoices.list.map(value => {
@@ -62,12 +62,14 @@ class BillingService {
 
       const summary = await flexibilling.getMaxDevicesRegisteredSummmary(user.defaultAccount.id);
       const status = await flexibilling.getSubscriptionStatus({ customer_id: customerId });
-      const filteredSummary = (summary) ? {
-        _id: summary._id.toString(),
-        current: summary.current,
-        max: summary.max,
-        account: summary.account.toString()
-      } : null;
+      const filteredSummary = (summary)
+        ? {
+            _id: summary._id.toString(),
+            current: summary.current,
+            max: summary.max,
+            account: summary.account.toString()
+          }
+        : null;
 
       return Service.successResponse({
         invoices: _invoices,

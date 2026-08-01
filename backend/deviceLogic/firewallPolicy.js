@@ -67,9 +67,9 @@ const prepareFirewallJobInfo = (device, policyParams, op, org, apps, requestTime
   const data = {
     policy: {
       device: { _id: device._id, firewallPolicy: policyParams ? policyParams.id : '' },
-      requestTime: requestTime,
-      op: op,
-      org: org
+      requestTime,
+      op,
+      org
     }
   };
 
@@ -103,11 +103,15 @@ const getFirewallParameters = (policy, device) => {
   // global rules must be applied after device specific rules
   // assuming there will be not more than 10000 local rules
   const globalShift = 10000;
-  const policyRules = policy ? policy.rules
-    .filter(r => r.enabled && ['inbound', 'outbound'].includes(r.direction))
-    .map(r => ({ ...r, priority: r.priority + globalShift })) : [];
-  const deviceRules = device.deviceSpecificRulesEnabled ? device.firewall.rules
-    .filter(r => r.enabled && ['inbound', 'outbound'].includes(r.direction)) : [];
+  const policyRules = policy
+    ? policy.rules
+      .filter(r => r.enabled && ['inbound', 'outbound'].includes(r.direction))
+      .map(r => ({ ...r, priority: r.priority + globalShift }))
+    : [];
+  const deviceRules = device.deviceSpecificRulesEnabled
+    ? device.firewall.rules
+      .filter(r => r.enabled && ['inbound', 'outbound'].includes(r.direction))
+    : [];
   const firewallRules = [...policyRules, ...deviceRules]
     .sort((r1, r2) => r1.priority - r2.priority);
   if (firewallRules.length === 0) {
@@ -167,7 +171,8 @@ const getFirewallParameters = (policy, device) => {
       const { ipProtoPort } = rule.classification.destination;
       if (!isEmpty(ipProtoPort)) {
         classification.destination = {};
-        const inboundParams = inbound === 'nat1to1' ? ['interface']
+        const inboundParams = inbound === 'nat1to1'
+          ? ['interface']
           : ['interface', 'ports', 'protocols'];
         inboundParams.forEach(item => {
           if (!isEmpty(ipProtoPort[item])) {
@@ -227,12 +232,12 @@ const queueFirewallPolicyJob = async (deviceList, op, requestTime, policy, user,
         // Data
         {
           title: jobTitle,
-          tasks: tasks
+          tasks
         },
         // Response data
         {
           method: 'firewallPolicy',
-          data: data
+          data
         },
         // Metadata
         { priority: 'normal', attempts: 1, removeOnComplete: false },
@@ -259,7 +264,7 @@ const getOpDevices = async (devicesObj, org, policy) => {
   const { _id } = policy;
   const result = await devices.find(
     {
-      org: org,
+      org,
       'policies.firewall.policy': _id,
       'policies.firewall.status': { $in: ['installing', 'installed'] }
     },
@@ -294,7 +299,7 @@ const filterDevices = (devices, deviceIds, op) => {
 const getFirewallPolicy = async (id, org) => {
   if (!id) return undefined;
   const firewallPolicy = await firewallPoliciesModel.findOne(
-    { org: org, _id: id },
+    { org, _id: id },
     { rules: 1, name: 1 }
   ).lean();
   return firewallPolicy;
@@ -308,13 +313,13 @@ const updateDevicesBeforeJob = async (deviceIds, op, requestTime, firewallPolicy
   if (op === 'install') {
     updateOps.push({
       updateMany: {
-        filter: { _id: { $in: deviceIds }, org: org },
+        filter: { _id: { $in: deviceIds }, org },
         update: {
           $set: {
             'policies.firewall': {
               policy: firewallPolicy ? firewallPolicy._id : null,
               status: 'installing',
-              requestTime: requestTime
+              requestTime
             }
           }
         },
@@ -324,7 +329,7 @@ const updateDevicesBeforeJob = async (deviceIds, op, requestTime, firewallPolicy
   } else {
     updateOps.push({
       updateMany: {
-        filter: { _id: { $in: deviceIds }, org: org, deviceSpecificRulesEnabled: false },
+        filter: { _id: { $in: deviceIds }, org, deviceSpecificRulesEnabled: false },
         update: {
           $set: {
             'policies.firewall.status': 'uninstalling',
@@ -336,13 +341,13 @@ const updateDevicesBeforeJob = async (deviceIds, op, requestTime, firewallPolicy
     });
     updateOps.push({
       updateMany: {
-        filter: { _id: { $in: deviceIds }, org: org, deviceSpecificRulesEnabled: true },
+        filter: { _id: { $in: deviceIds }, org, deviceSpecificRulesEnabled: true },
         update: {
           $set: {
             'policies.firewall': {
               policy: null,
               status: 'installing',
-              requestTime: requestTime
+              requestTime
             }
           }
         },
@@ -406,7 +411,8 @@ const apply = async (deviceList, user, data) => {
     }
   } catch (err) {
     throw err.name === 'MongoError'
-      ? new Error() : err;
+      ? new Error()
+      : err;
   }
   const deviceIdsSet = new Set(deviceIds.map(id => id.toString()));
   const opDevices = filterDevices(deviceList, deviceIdsSet, op);
@@ -473,7 +479,7 @@ const applyPolicy = async (opDevices, firewallPolicy, op, user, org) => {
 
     // Update devices' policy status in the database
     await devices.updateMany(
-      { _id: { $in: failedDevices }, org: org },
+      { _id: { $in: failedDevices }, org },
       { $set: { 'policies.firewall.status': 'job queue failed' } },
       { upsert: false }
     );
@@ -505,7 +511,7 @@ const complete = async (jobId, res) => {
       : { $set: { 'policies.firewall': {} } };
 
     await devices.updateOne(
-      { _id: _id, org: org },
+      { _id, org },
       update,
       { upsert: false }
     );
@@ -517,7 +523,7 @@ const complete = async (jobId, res) => {
     }
   } catch (err) {
     logger.error('Device policy status update failed', {
-      params: { jobId: jobId, res: res, err: err.message }
+      params: { jobId, res, err: err.message }
     });
   }
 };
@@ -555,7 +561,7 @@ const completeSync = async (jobId, jobsData) => {
  */
 const error = async (jobId, res) => {
   logger.error('Policy job failed', {
-    params: { result: res, jobId: jobId }
+    params: { result: res, jobId }
   });
 
   const { policy } = res;
@@ -564,7 +570,7 @@ const error = async (jobId, res) => {
   try {
     const status = `${op === 'install' ? '' : 'un'}installation failed`;
     await devices.updateOne(
-      { _id: _id, org: org },
+      { _id, org },
       { $set: { 'policies.firewall.status': status } },
       { upsert: false }
     );
@@ -576,7 +582,7 @@ const error = async (jobId, res) => {
     }
   } catch (err) {
     logger.error('Device policy status update failed', {
-      params: { jobId: jobId, res: res, err: err.message }
+      params: { jobId, res, err: err.message }
     });
   }
 };
@@ -604,8 +610,8 @@ const remove = async (job) => {
     try {
       await devices.updateOne(
         {
-          _id: _id,
-          org: org,
+          _id,
+          org,
           'policies.firewall.requestTime': { $eq: requestTime }
         },
         { $set: { 'policies.firewall.status': status } },
@@ -620,7 +626,7 @@ const remove = async (job) => {
       }
     } catch (err) {
       logger.error('Device policy status update failed', {
-        params: { job: job, status: status, err: err.message }
+        params: { job, status, err: err.message }
       });
     }
   }
@@ -677,12 +683,12 @@ const sync = async (deviceId, org) => {
 };
 
 module.exports = {
-  apply: apply,
-  complete: complete,
-  completeSync: completeSync,
-  error: error,
-  remove: remove,
-  sync: sync,
+  apply,
+  complete,
+  completeSync,
+  error,
+  remove,
+  sync,
   applyPolicy,
   getDevicesFirewallJobInfo
 };

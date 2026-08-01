@@ -106,9 +106,11 @@ class MultiLinkPoliciesService {
     let orgPathLabels = await pathLabelsModel.find({ org }, '_id').lean();
     orgPathLabels = orgPathLabels.map(pl => pl._id.toString());
     const notAllowedPathLabels = rules.map(rule =>
-      rule.action && !Array.isArray(rule.action.links) ? []
+      rule.action && !Array.isArray(rule.action.links)
+        ? []
         : rule.action.links.map(link =>
-          !Array.isArray(link.pathlabels) ? []
+          !Array.isArray(link.pathlabels)
+            ? []
             : link.pathlabels.map(pl => pl._id).filter(id => !orgPathLabels.includes(id))
         )
     ).flat(3);
@@ -294,11 +296,11 @@ class MultiLinkPoliciesService {
         },
         {
           org: orgList[0].toString(),
-          name: name,
-          description: description,
-          applyOnWan: applyOnWan,
-          overrideDefaultRoute: overrideDefaultRoute,
-          rules: rules
+          name,
+          description,
+          applyOnWan,
+          overrideDefaultRoute,
+          rules
         },
         {
           fields: {
@@ -402,11 +404,11 @@ class MultiLinkPoliciesService {
 
       let result = await MultiLinkPolicies.create({
         org: orgList[0].toString(),
-        name: name,
-        description: description,
-        applyOnWan: applyOnWan,
-        overrideDefaultRoute: overrideDefaultRoute,
-        rules: rules
+        name,
+        description,
+        applyOnWan,
+        overrideDefaultRoute,
+        rules
       });
 
       result = await result.populate(

@@ -57,7 +57,7 @@ class WebHooks {
       messageObject = message;
     }
 
-    messageObject = { ...messageObject, ...(secret && { secret: secret }) };
+    messageObject = { ...messageObject, ...(secret && { secret }) };
     const data = JSON.stringify(messageObject);
 
     const headers = {
@@ -68,7 +68,7 @@ class WebHooks {
 
     return fetch(url, {
       method: 'POST',
-      headers: headers,
+      headers,
       body: data
     })
       .then(response => {

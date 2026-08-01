@@ -73,7 +73,7 @@ const checkUpdReq = (qtype, req) => new Promise(function (resolve, reject) {
       .then(async (tunnelFound) => {
         if (tunnelFound.length > 0) {
           logger.warn('Tunnels found when deleting device',
-            { params: { deviceId: req.params.deviceId }, req: req });
+            { params: { deviceId: req.params.deviceId }, req });
           reject(new Error('All device tunnels must be deleted before deleting a device'));
         } else {
           // start session/transaction
@@ -107,7 +107,7 @@ const checkUpdReq = (qtype, req) => new Promise(function (resolve, reject) {
               if (session) { await session.abortTransaction(); };
               logger.warn('Error finding device', {
                 params: { method: qtype, err: err.message },
-                req: req
+                req
               });
               reject(err);
             })
@@ -115,7 +115,7 @@ const checkUpdReq = (qtype, req) => new Promise(function (resolve, reject) {
               if (session) { await session.abortTransaction(); };
               logger.warn('Error finding device', {
                 params: { method: qtype, err: err.message },
-                req: req
+                req
               });
               reject(err);
             });
@@ -144,8 +144,8 @@ const checkUpdReq = (qtype, req) => new Promise(function (resolve, reject) {
           if (!valid) {
             logger.warn('Device update failed',
               {
-                params: { device: req.body, err: err },
-                req: req
+                params: { device: req.body, err },
+                req
               });
             return reject(new Error(err));
           }
@@ -175,14 +175,14 @@ const checkUpdReq = (qtype, req) => new Promise(function (resolve, reject) {
       }, (err) => {
         logger.warn('Error finding device', {
           params: { method: qtype, err: err.message },
-          req: req
+          req
         });
         reject(err);
       })
       .catch((err) => {
         logger.warn('Error finding device', {
           params: { method: qtype, err: err.message },
-          req: req
+          req
         });
         reject(err);
       });
@@ -332,7 +332,7 @@ devicesRouter.route('/apply')
         return res.status(200).send({});
       }, (err) => { next(err); })
       .catch((err) => {
-        logger.warn('Apply operation failed', { params: { err: err.message }, req: req });
+        logger.warn('Apply operation failed', { params: { err: err.message }, req });
         return next(createError(500, 'Device Sync'));
       });
   });
@@ -380,7 +380,7 @@ devicesRouter.route('/:deviceId/apply')
       .catch(err => {
         logger.warn('Apply operation failed', {
           params: { err: err.message },
-          req: req
+          req
         });
         return next(createError(500, 'Apply device'));
       });
@@ -413,7 +413,7 @@ devicesRouter.route('/:deviceId/configuration')
             deviceId: req.params.deviceId,
             response: deviceConf.message
           },
-          req: req
+          req
         });
         return next(createError(500, 'Failed to get device configuration'));
       }
@@ -478,7 +478,7 @@ devicesRouter.route('/:deviceId/logs')
               deviceId: req.params.deviceId,
               response: deviceLogs.message
             },
-            req: req
+            req
           });
           return next(createError(500, 'Failed to get device logs'));
         }
@@ -521,7 +521,7 @@ devicesRouter.route('/:deviceId/routes')
             deviceId: req.params.deviceId,
             response: deviceOsRoutes.message
           },
-          req: req
+          req
         });
         return next(createError(500, 'Failed to get device routes'));
       }

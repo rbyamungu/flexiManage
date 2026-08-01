@@ -37,7 +37,7 @@ class RoleSelector {
     const { redisAuth, redisUrlNoAuth } = getRedisAuthUrl(redisUrl);
     this.redis = redis.createClient({ url: redisUrlNoAuth });
     if (redisAuth) this.redis.auth(redisAuth);
-    logger.info('RoleSelector init', { params: { redisUrl: redisUrl } });
+    logger.info('RoleSelector init', { params: { redisUrl } });
 
     // Selectors by key
     this.selectors = {};
@@ -52,10 +52,10 @@ class RoleSelector {
     const selector = new Selector(this.redis, key);
 
     selector.on('error', (err) => {
-      logger.error('RoleSelector error', { params: { key: key } });
+      logger.error('RoleSelector error', { params: { key } });
     });
     selector.on('elected', () => {
-      logger.info('RoleSelector elected', { params: { key: key } });
+      logger.info('RoleSelector elected', { params: { key } });
     });
 
     this.selectors[key] = selector;
@@ -69,7 +69,7 @@ class RoleSelector {
     this.selectors[key].isActive((err, isActive) => {
       if (err) {
         logger.error('RoleSelector isActive error', {
-          params: { key: key, err: err.message }
+          params: { key, err: err.message }
         });
       } else {
         if (isActive) {
@@ -84,7 +84,7 @@ class RoleSelector {
   }
 }
 
-var RoleSelectorHandler = null;
+let RoleSelectorHandler = null;
 module.exports = function (redisUrl) {
   if (RoleSelectorHandler) return RoleSelectorHandler;
   else {

@@ -250,10 +250,10 @@ class FirewallPoliciesService {
         },
         {
           org: orgList[0].toString(),
-          name: name,
-          description: description,
-          isDefault: isDefault,
-          rules: rules
+          name,
+          description,
+          isDefault,
+          rules
         },
         {
           fields: {
@@ -361,10 +361,10 @@ class FirewallPoliciesService {
 
       const result = await FirewallPolicies.create({
         org: orgList[0].toString(),
-        name: name,
-        description: description,
-        isDefault: isDefault,
-        rules: rules
+        name,
+        description,
+        isDefault,
+        rules
       });
 
       const firewallPolicy = (({ _id, name, description, isDefault, rules }) => ({

@@ -72,7 +72,7 @@ class RemoteVpn extends IApplication {
     if (existsNetworkId) {
       const err = 'This workspace name is already in use by another account or organization. ' +
       'Please choose another workspace name';
-      return { valid: false, err: err };
+      return { valid: false, err };
     }
 
     // get users portal numbers configured for the entire account
@@ -99,7 +99,7 @@ class RemoteVpn extends IApplication {
       const err =
       `The number ${requestedPortalUsers} is too high for "Max Remote Worker Users". ${leftMsg}` +
       'Please contact your system provider for more information';
-      return { valid: false, err: err };
+      return { valid: false, err };
     }
 
     // make sure that one auth method is enabled
@@ -301,7 +301,7 @@ class RemoteVpn extends IApplication {
     }
 
     return {
-      isNew: isNew,
+      isNew,
       caKey: keys.caKey,
       caCrt: keys.caCrt,
       serverKey: keys.serverKey,
@@ -389,10 +389,12 @@ class RemoteVpn extends IApplication {
       }
 
       const dnsIps = config.dnsIps && config.dnsIps !== ''
-        ? config.dnsIps.split(/\s*,\s*/) : [];
+        ? config.dnsIps.split(/\s*,\s*/)
+        : [];
 
       const dnsDomains = config.dnsDomains && config.dnsDomains !== ''
-        ? config.dnsDomains.split(/\s*,\s*/) : [];
+        ? config.dnsDomains.split(/\s*,\s*/)
+        : [];
 
       params.routeAllTrafficOverVpn = config.routeAllTrafficOverVpn || false;
       params.port = config.serverPort ? config.serverPort : '';
@@ -460,7 +462,7 @@ class RemoteVpn extends IApplication {
 
   async getConfiguredPortalUsers (account, org = null, exclude = null) {
     const match = {
-      account: account
+      account
     };
 
     if (org) match._id = org;

@@ -451,7 +451,9 @@ const validateDevice = async (
   if (device.firewall) {
     const { interfaces, firewall, policies } = device;
     const globalRules = policies?.firewall?.policy &&
-      policies?.firewall?.status?.startsWith('install') ? policies.firewall.policy.rules : [];
+      policies?.firewall?.status?.startsWith('install')
+      ? policies.firewall.policy.rules
+      : [];
     const { valid, err } = validateFirewallRules(
       [...globalRules, ...firewall.rules],
       org,
@@ -1014,7 +1016,7 @@ const validateOverlappingSubnets = async (org, subnets) => {
       if (cidr.overlap(subnet, applicationSubnet.subnet)) {
         overlappingSubnets.push({
           type: 'application',
-          subnet: subnet,
+          subnet,
           overlappingWith: applicationSubnet.subnet,
           meta: {
             appId: applicationSubnet._id.toString(),

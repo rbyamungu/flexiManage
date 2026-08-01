@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-var configs = require('../configs')();
+const configs = require('../configs')();
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
@@ -273,7 +273,7 @@ membersRouter.route('/')
           to: req.body.userPermissionTo,
           role: req.body.userRole,
           perms: preDefinedPermissions[req.body.userPermissionTo + '_' + req.body.userRole]
-        }], { session: session });
+        }], { session });
       })
       .then(() => {
         if (registerUser) {

@@ -56,8 +56,8 @@ async function up () {
         }
       });
       await devices.update(
-        { _id: _id },
-        { $set: { interfaces: interfaces } },
+        { _id },
+        { $set: { interfaces } },
         { upsert: false }
       );
     }

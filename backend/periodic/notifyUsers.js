@@ -66,7 +66,7 @@ class NotifyUsers {
   }
 }
 
-var notifyUsers = null;
+let notifyUsers = null;
 module.exports = function () {
   if (notifyUsers) return notifyUsers;
   notifyUsers = new NotifyUsers();

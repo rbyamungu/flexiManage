@@ -128,7 +128,7 @@ const setIKEv2QueuedFlag = async (deviceIDs, flag) => {
   };
   const result = await devices.updateMany(
     { _id: { $in: deviceIDs } },
-    { $set: $set },
+    { $set },
     { upsert: false }
   );
   logger.debug('IKEv2 jobQueued flag set', { params: { deviceIDs, flag, result } });
@@ -165,7 +165,7 @@ const apply = async (devicesIn, user, data) => {
   const jobResults = await queueCreateIKEv2Jobs(opDevices, userName, org);
   jobResults.forEach(job => {
     logger.info('Create IKEv2 certificate device job queued', {
-      params: { job: job }
+      params: { job }
     });
   });
 
@@ -217,7 +217,8 @@ const complete = async (jobId, res) => {
     let certificate = res.agentMessage.certificate;
     certificate = Array.isArray(certificate) ? certificate.join('') : certificate;
     const expireTime = certificate && res.agentMessage.expiration
-      ? (new Date(res.agentMessage.expiration)).getTime() : null;
+      ? (new Date(res.agentMessage.expiration)).getTime()
+      : null;
 
     if (certificate && expireTime && !isNaN(expireTime)) {
       // update the device IKEv2 data
@@ -307,7 +308,7 @@ const complete = async (jobId, res) => {
       await setIKEv2QueuedFlag([res.deviceId], false);
     } catch (err) {
       logger.warn('Failed to update jobQueued field in database', {
-        params: { result: res, jobId: jobId, err: err.message }
+        params: { result: res, jobId, err: err.message }
       });
     }
   }
@@ -322,12 +323,12 @@ const complete = async (jobId, res) => {
  * @return {void}
  */
 const error = async (jobId, res) => {
-  logger.warn('Device IKEv2 job failed', { params: { result: res, jobId: jobId } });
+  logger.warn('Device IKEv2 job failed', { params: { result: res, jobId } });
   try {
     await setIKEv2QueuedFlag([res.deviceId], false);
   } catch (err) {
     logger.warn('Failed to update IKEv2 jobQueued field in database', {
-      params: { result: res, jobId: jobId, err: err.message }
+      params: { result: res, jobId, err: err.message }
     });
   }
 };

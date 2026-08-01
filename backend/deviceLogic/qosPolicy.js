@@ -82,9 +82,9 @@ const prepareQOSJobInfo = (device, policyParams, op, org, apps, trafficMap, requ
   const data = {
     policy: {
       device: { _id: device._id, qosPolicy: policyParams ? policyParams.id : '' },
-      requestTime: requestTime,
-      op: op,
-      org: org
+      requestTime,
+      op,
+      org
     }
   };
 
@@ -267,12 +267,12 @@ const queueQOSPolicyJob = async (deviceList, op, requestTime, policy, user, org,
         // Data
         {
           title: jobTitle,
-          tasks: tasks
+          tasks
         },
         // Response data
         {
           method: 'qosPolicy',
-          data: data
+          data
         },
         // Metadata
         { priority: 'normal', attempts: 1, removeOnComplete: false },
@@ -297,7 +297,7 @@ const getOpDevices = async (devicesObj, org, policy, op) => {
   // are in the process of uninstalling the policy.
   const { _id } = policy || { _id: null };
   const filter = {
-    org: org,
+    org,
     'policies.qos.status': { $in: ['installing', 'installed', 'installation failed'] }
   };
 
@@ -348,7 +348,7 @@ const filterDevices = (devices, deviceIds, op, policyIdRequest) => {
 const getQOSPolicy = async (id, org) => {
   if (!id) return undefined;
   const qosPolicy = await qosPoliciesModel.findOne(
-    { org: org, _id: id },
+    { org, _id: id },
     { name: 1, inbound: 1, outbound: 1 }
   ).lean();
   return qosPolicy;
@@ -372,7 +372,7 @@ const updateDevicesBeforeJob = async (deviceIds, op, requestTime, qosPolicy, org
     };
     updateOps.push({
       updateMany: {
-        filter: { _id: { $in: deviceIds }, org: org },
+        filter: { _id: { $in: deviceIds }, org },
         update: { $set: qosUpdates },
         upsert: false
       }
@@ -384,7 +384,7 @@ const updateDevicesBeforeJob = async (deviceIds, op, requestTime, qosPolicy, org
       updateMany: {
         filter: {
           _id: { $in: deviceIds },
-          org: org,
+          org,
           $or: [
             { 'policies.qos.policy': qosPolicy._id },
             { 'policies.qos.policy': null }
@@ -416,7 +416,7 @@ const updateDevicesBeforeJob = async (deviceIds, op, requestTime, qosPolicy, org
       updateMany: {
         filter: {
           _id: { $in: deviceIds },
-          org: org,
+          org,
           'policies.qos.policy': qosPolicy._id,
           interfaces: {
             $elemMatch: {
@@ -430,7 +430,7 @@ const updateDevicesBeforeJob = async (deviceIds, op, requestTime, qosPolicy, org
             'policies.qos': {
               policy: null,
               status: 'installing',
-              requestTime: requestTime
+              requestTime
             }
           }
         },
@@ -445,7 +445,7 @@ const updateDevicesBeforeJob = async (deviceIds, op, requestTime, qosPolicy, org
       updateMany: {
         filter: {
           _id: { $in: deviceIds },
-          org: org,
+          org,
           'policies.qos.policy': { $ne: qosPolicy._id },
           interfaces: {
             $elemMatch: {
@@ -471,7 +471,7 @@ const updateDevicesBeforeJob = async (deviceIds, op, requestTime, qosPolicy, org
       updateMany: {
         filter: {
           _id: { $in: deviceIds },
-          org: org,
+          org,
           $or: [
             { 'policies.qos.policy': { $ne: null } },
             { interfaces: { $elemMatch: { qosPolicy: { $ne: null } } } }
@@ -507,7 +507,7 @@ const apply = async (deviceList, user, data) => {
   deviceList = await Promise.all(deviceList.map(d => d
     .populate('policies.qos.policy')
     .populate('interfaces.qosPolicy')
-    
+
   ));
 
   let qosPolicy, deviceIds;
@@ -532,7 +532,8 @@ const apply = async (deviceList, user, data) => {
     );
   } catch (err) {
     throw err.name === 'MongoError'
-      ? new Error() : err;
+      ? new Error()
+      : err;
   }
   const deviceIdsSet = new Set(deviceIds.map(id => id.toString()));
   const opDevices = filterDevices(deviceList, deviceIdsSet, op, policyId);
@@ -608,7 +609,7 @@ const applyPolicy = async (opDevices, qosPolicy, op, user, org, installed = fals
 
     // Update devices' policy status in the database
     await devices.updateMany(
-      { _id: { $in: failedDevices }, org: org },
+      { _id: { $in: failedDevices }, org },
       { $set: { 'policies.qos.status': 'job queue failed' } },
       { upsert: false }
     );
@@ -640,7 +641,7 @@ const complete = async (jobId, res) => {
       : { $set: { 'policies.qos': {} } };
 
     await devices.updateOne(
-      { _id: _id, org: org },
+      { _id, org },
       update,
       { upsert: false }
     );
@@ -653,7 +654,7 @@ const complete = async (jobId, res) => {
     }
   } catch (err) {
     logger.error('Device policy status update failed', {
-      params: { jobId: jobId, res: res, err: err.message }
+      params: { jobId, res, err: err.message }
     });
   }
 };
@@ -691,7 +692,7 @@ const completeSync = async (jobId, jobsData) => {
  */
 const error = async (jobId, res) => {
   logger.error('Policy job failed', {
-    params: { result: res, jobId: jobId }
+    params: { result: res, jobId }
   });
 
   const { policy } = res;
@@ -700,7 +701,7 @@ const error = async (jobId, res) => {
   try {
     const status = `${op === 'install' ? '' : 'un'}installation failed`;
     await devices.updateOne(
-      { _id: _id, org: org },
+      { _id, org },
       { $set: { 'policies.qos.status': status } },
       { upsert: false }
     );
@@ -713,7 +714,7 @@ const error = async (jobId, res) => {
     }
   } catch (err) {
     logger.error('Device policy status update failed', {
-      params: { jobId: jobId, res: res, err: err.message }
+      params: { jobId, res, err: err.message }
     });
   }
 };
@@ -741,8 +742,8 @@ const remove = async (job) => {
     try {
       await devices.updateOne(
         {
-          _id: _id,
-          org: org,
+          _id,
+          org,
           'policies.qos.requestTime': { $eq: requestTime }
         },
         { $set: { 'policies.qos.status': status } },
@@ -760,7 +761,7 @@ const remove = async (job) => {
       }
     } catch (err) {
       logger.error('Device policy status update failed', {
-        params: { job: job, status: status, err: err.message }
+        params: { job, status, err: err.message }
       });
     }
   }
@@ -825,12 +826,12 @@ const sync = async (deviceId, org) => {
 };
 
 module.exports = {
-  apply: apply,
-  complete: complete,
-  completeSync: completeSync,
-  error: error,
-  remove: remove,
-  sync: sync,
+  apply,
+  complete,
+  completeSync,
+  error,
+  remove,
+  sync,
   applyPolicy,
   getDevicesQOSJobInfo
 };

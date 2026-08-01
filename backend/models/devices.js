@@ -754,7 +754,7 @@ const devicePolicySchema = (ref) => new Schema({
   _id: false,
   policy: {
     type: Schema.Types.ObjectId,
-    ref: ref,
+    ref,
     default: null
   },
   status: {

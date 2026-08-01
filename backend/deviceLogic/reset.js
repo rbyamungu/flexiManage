@@ -50,13 +50,13 @@ const apply = async (devices, user, data) => {
       username,
       org,
       // Data
-      { title: 'Reset device ' + hostname, tasks: tasks },
+      { title: 'Reset device ' + hostname, tasks },
       // Response data
       {
         method: 'reset',
         data: {
           device: _id,
-          org: org
+          org
         }
       },
       // Metadata
@@ -84,7 +84,8 @@ const apply = async (devices, user, data) => {
     return { fulfilled, reasons };
   }, { fulfilled: [], reasons: [] });
   const status = fulfilled.length < devices.length
-    ? 'partially completed' : 'completed';
+    ? 'partially completed'
+    : 'completed';
   const message = fulfilled.length < devices.length
     ? `Warning: ${fulfilled.length} of ${devices.length} reset device jobs added.` +
       `Some devices have following errors: ${reasons.join('. ')}`
@@ -100,7 +101,7 @@ const apply = async (devices, user, data) => {
  */
 const complete = (jobId, res) => {
   logger.info('Reset device job complete', {
-    params: { result: res, jobId: jobId }
+    params: { result: res, jobId }
   });
 };
 
@@ -112,12 +113,12 @@ const complete = (jobId, res) => {
  */
 const error = (jobId, res) => {
   logger.error('Reset device job failed', {
-    params: { result: res, jobId: jobId }
+    params: { result: res, jobId }
   });
 };
 
 module.exports = {
-  apply: apply,
-  complete: complete,
-  error: error
+  apply,
+  complete,
+  error
 };

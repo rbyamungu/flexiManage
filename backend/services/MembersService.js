@@ -78,7 +78,8 @@ class MembersService {
       memItem.user__id = memItem.user__id.toString();
       memItem.account__id = memItem.account__id.toString();
       memItem.organization__id = (memItem.organization__id)
-        ? memItem.organization__id.toString() : null;
+        ? memItem.organization__id.toString()
+        : null;
 
       return memItem;
     });
@@ -217,9 +218,11 @@ class MembersService {
         account: askingUserMembership.defaultAccount._id,
         to: memberRequest.userPermissionTo,
         group: memberRequest.userPermissionTo === 'group'
-          ? memberRequest.userEntity : '',
+          ? memberRequest.userEntity
+          : '',
         organization: memberRequest.userPermissionTo === 'organization'
-          ? memberRequest.userEntity : null,
+          ? memberRequest.userEntity
+          : null,
         ...(create) && { role: memberRequest.userRole },
         ...(create) && {
           perms: preDefinedPermissions[
@@ -331,7 +334,8 @@ class MembersService {
           $set: {
             group: memberRequest.userPermissionTo === 'group' ? memberRequest.userEntity : '',
             organization: memberRequest.userPermissionTo === 'organization'
-              ? memberRequest.userEntity : null,
+              ? memberRequest.userEntity
+              : null,
             to: memberRequest.userPermissionTo,
             role: memberRequest.userRole,
             perms: preDefinedPermissions[
@@ -455,7 +459,8 @@ class MembersService {
       // Check that current user is allowed to delete member
       const verified = await MembersService.checkMemberLevel(membershipData.to, membershipData.role,
         (membershipData.to === 'organization')
-          ? membershipData.organization : membershipData.group,
+          ? membershipData.organization
+          : membershipData.group,
         user._id, user.defaultAccount._id, membershipData);
       if (!verified) {
         return Service.rejectResponse(
@@ -598,7 +603,8 @@ class MembersService {
           emailTokens: { verify: '', invite: '', resetPassword: resetPWKey },
           defaultAccount: user.defaultAccount._id,
           defaultOrg: memberRequest.userPermissionTo === 'organization'
-            ? memberRequest.userEntity : null
+            ? memberRequest.userEntity
+            : null
           // null will try to find a valid organization on login
         });
         registerUser.validate();
@@ -631,7 +637,7 @@ class MembersService {
           memberRequest,
           registerUser ? registerUser._id : null,
           true)
-      ], { session: session });
+      ], { session });
 
       if (registerUser) {
         registerUser.$session(session);
@@ -654,7 +660,8 @@ class MembersService {
         <b>You have been invited to a ${configs.get('companyName')}
         company ${memberRequest.userPermissionTo} named
         '${memberRequest.userPermissionTo === 'group'
-        ? populatedMember.group : populatedMember[memberRequest.userPermissionTo].name}'
+        ? populatedMember.group
+: populatedMember[memberRequest.userPermissionTo].name}'
           by ${user.username} . </b>`) + ((registerUser)
           ? `<b>Click below to set your password</b>
         <p><a href="${restUiUrl}/reset-password?id=${

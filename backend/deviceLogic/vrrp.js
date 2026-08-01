@@ -241,7 +241,7 @@ const queue = async (origVrrpGroup, newVrrpGroup, orgId, user) => {
       // Data
       {
         title: 'Modify VRRP for device ' + name,
-        tasks: tasks
+        tasks
       },
       // Response data
       {
@@ -293,13 +293,13 @@ const complete = async (jobId, res) => {
 
   if (!deviceId) {
     logger.warn('VRRP Job completed without deviceId', {
-      params: { orgId, vrrpGroupId: vrrpGroup?._id, op, jobId: jobId }
+      params: { orgId, vrrpGroupId: vrrpGroup?._id, op, jobId }
     });
     return;
   }
 
   logger.info('VRRP job complete', {
-    params: { deviceId, orgId, vrrpGroupId: vrrpGroup?._id, op, jobId: jobId }
+    params: { deviceId, orgId, vrrpGroupId: vrrpGroup?._id, op, jobId }
   });
 
   if (op === 'create') { // for "remove" device is not exists so nothing to update
@@ -324,7 +324,7 @@ const complete = async (jobId, res) => {
  */
 const error = async (jobId, res) => {
   logger.error('VRRP job failed', {
-    params: { result: res, jobId: jobId }
+    params: { result: res, jobId }
   });
 
   const { device: deviceId, orgId, vrrpGroup, op } = res;
@@ -344,7 +344,7 @@ const error = async (jobId, res) => {
  */
 const sync = async (deviceId, org) => {
   const vrrpGroups = await Vrrp.find(
-    { org: org, 'devices.device': deviceId }
+    { org, 'devices.device': deviceId }
   ).populate('devices.device').lean();
 
   const request = [];

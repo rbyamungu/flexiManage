@@ -191,10 +191,10 @@ class PathLabelsService {
           },
           {
             org: orgList[0].toString(),
-            name: name,
-            description: description,
-            color: color,
-            type: type
+            name,
+            description,
+            color,
+            type
           },
           {
             fields: { name: 1, description: 1, color: 1, type: 1 }
@@ -270,10 +270,10 @@ class PathLabelsService {
 
       const result = await PathLabels.create({
         org: orgList[0].toString(),
-        name: name,
-        description: description,
-        color: color,
-        type: type
+        name,
+        description,
+        color,
+        type
       });
 
       const pathLabel = (({ name, description, color, _id, type }) => ({

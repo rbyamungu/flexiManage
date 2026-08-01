@@ -53,7 +53,7 @@ const generateRemoteVpnPKI = async (orgName) => {
     // Make sure pki tmp folder is not exists, otherwise the package will throw an error
     deleteFolderRecursive(pkiDir);
 
-    const easyrsa = new EasyRSA({ pkiDir: pkiDir });
+    const easyrsa = new EasyRSA({ pkiDir });
     easyrsa.initPKI()
       .then(t => {
         return easyrsa.buildCA();

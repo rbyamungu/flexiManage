@@ -45,7 +45,8 @@ const apply = async (devices, user, data) => {
       );
 
   const opDevices = (devices && installIds)
-    ? devices.filter((device) => installIds.hasOwnProperty(device._id)) : [];
+    ? devices.filter((device) => installIds.hasOwnProperty(device._id))
+    : [];
 
   const jobPromises = [];
   opDevices.forEach(async device => {
@@ -58,7 +59,7 @@ const apply = async (devices, user, data) => {
       tasks.push({ entity: 'agent', message, params });
       const jobPromise = deviceQueues.addJob(machineId, userName, org,
         // Data
-        { title: `${title} ${device.name}`, tasks: tasks },
+        { title: `${title} ${device.name}`, tasks },
         // Response data
         {
           method: 'appIdentification',
@@ -82,7 +83,7 @@ const apply = async (devices, user, data) => {
       arr.push(job);
       logger.info('App Identification Job Queued', {
         params: {
-          job: job
+          job
         }
       });
     } else {
@@ -93,9 +94,11 @@ const apply = async (devices, user, data) => {
     return arr;
   }, []);
   const status = fulfilled.length < opDevices.length
-    ? 'partially completed' : 'completed';
+    ? 'partially completed'
+    : 'completed';
   const warningMessage = fulfilled.length < opDevices.length
-    ? `${fulfilled.length} of ${opDevices.length} App Identification jobs added` : '';
+    ? `${fulfilled.length} of ${opDevices.length} App Identification jobs added`
+    : '';
   return { ids: fulfilled.flat().map(job => job.id), status, message: warningMessage };
 };
 
@@ -116,7 +119,7 @@ const complete = async (jobId, res) => {
     );
   } catch (error) {
     logger.error('Complete appIdentification job, failed', {
-      params: { result: res, jobId: jobId, message: error.message }
+      params: { result: res, jobId, message: error.message }
     });
   }
 };
@@ -152,7 +155,7 @@ const resetDeviceLastRequestTime = async (jobId, res) => {
     );
   } catch (error) {
     logger.error('revert appIdentification job, failed', {
-      params: { result: res, jobId: jobId, message: error.message }
+      params: { result: res, jobId, message: error.message }
     });
   }
 };
@@ -163,10 +166,10 @@ const resetDeviceLastRequestTime = async (jobId, res) => {
  * @param {Object} res   - response data for job ID
  */
 const error = async (jobId, res) => {
-  logger.info('appIdentification job failed', { params: { result: res, jobId: jobId } });
+  logger.info('appIdentification job failed', { params: { result: res, jobId } });
   if (!res || !res.deviceId || !res.message) {
     logger.error('appIdentification job error got an invalid job result', {
-      params: { result: res, jobId: jobId }
+      params: { result: res, jobId }
     });
     return;
   }
@@ -245,7 +248,8 @@ const getDevicesAppIdentificationJobInfo = async (org, client, deviceIdList, isI
       appRules = await getOrgAppIdentifications(org);
       // Get latest update time
       requestTime = (appRules.meta.importedUpdatedAt >= appRules.meta.customUpdatedAt)
-        ? appRules.meta.importedUpdatedAt : appRules.meta.customUpdatedAt;
+        ? appRules.meta.importedUpdatedAt
+        : appRules.meta.customUpdatedAt;
       updateOps.push({
         updateMany: {
           filter: { _id: { $in: opDevices.map((d) => d._id) } },
@@ -258,7 +262,8 @@ const getDevicesAppIdentificationJobInfo = async (org, client, deviceIdList, isI
     appRules = await getOrgAppIdentifications(org);
     // Get latest update time
     updateAt = (appRules.meta.importedUpdatedAt >= appRules.meta.customUpdatedAt)
-      ? appRules.meta.importedUpdatedAt : appRules.meta.customUpdatedAt;
+      ? appRules.meta.importedUpdatedAt
+      : appRules.meta.customUpdatedAt;
     if (updateAt) {
       requestTime = updateAt;
       opDevices = await devices.find(
@@ -296,7 +301,7 @@ const getDevicesAppIdentificationJobInfo = async (org, client, deviceIdList, isI
     } else {
       opDevices = [];
       logger.warn('getDevicesAppIdentificationJobInfo: No application data found ', {
-        params: { org: org, client: client }
+        params: { org, client }
       });
     }
   } else {
@@ -317,7 +322,8 @@ const getDevicesAppIdentificationJobInfo = async (org, client, deviceIdList, isI
   const idsAndVersion = opDevices.reduce((obj, d) => {
     obj.ids[d._id] = true;
     obj.minVer = (d.versions && d.versions.agent)
-      ? Math.min(obj.minVer, getMajorVersion(d.versions.agent)) : 0;
+      ? Math.min(obj.minVer, getMajorVersion(d.versions.agent))
+      : 0;
     return obj;
   }, { ids: {}, minVer: Number.MAX_VALUE });
   ret.installIds = idsAndVersion.ids;
@@ -336,9 +342,9 @@ const getDevicesAppIdentificationJobInfo = async (org, client, deviceIdList, isI
     }
   } else ret.params = {};
   ret.deviceJobResp = {
-    requestTime: requestTime,
+    requestTime,
     message: ret.message,
-    client: client
+    client
   };
 
   return ret;
@@ -365,7 +371,7 @@ const sync = async (deviceId, org) => {
   const completeCbData = [];
   let callComplete = false;
   if (installIds[deviceId.toString()]) {
-    request.push({ entity: 'agent', message: message, params });
+    request.push({ entity: 'agent', message, params });
     completeCbData.push({ deviceId, requestTime: deviceJobResp.requestTime });
     callComplete = true;
   }
@@ -378,11 +384,11 @@ const sync = async (deviceId, org) => {
 };
 
 module.exports = {
-  apply: apply,
-  complete: complete,
-  completeSync: completeSync,
-  error: error,
-  remove: remove,
-  sync: sync,
-  getDevicesAppIdentificationJobInfo: getDevicesAppIdentificationJobInfo
+  apply,
+  complete,
+  completeSync,
+  error,
+  remove,
+  sync,
+  getDevicesAppIdentificationJobInfo
 };

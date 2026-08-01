@@ -73,7 +73,7 @@ const apply = async (opDevices, user, data) => {
   const tunnelCount = await tunnelsModel.countDocuments({
     $or: [{ deviceA: newId }, { deviceB: newId }],
     isActive: true,
-    org: org
+    org
   });
   if (tunnelCount > 0) {
     throw new Error('All device tunnels must be deleted on the new device');
@@ -86,28 +86,28 @@ const apply = async (opDevices, user, data) => {
   const { account } = oldDevice;
   await mongoConns.mainDBwithTransaction(async (session) => {
     const deviceCount = await devicesModel.countDocuments({
-      account: account
+      account
     }).session(session);
 
     const orgCount = await devicesModel.countDocuments({
-      account: account, org: org
+      account, org
     }).session(session);
 
     // Unregister a device (by adding - count)
     await flexibilling.registerDevice({
-      account: account,
-      org: org,
+      account,
+      org,
       count: deviceCount,
-      orgCount: orgCount,
+      orgCount,
       increment: -1
     }, session);
 
     // replace devices in DB
     await devicesModel.deleteOne(
-      { _id: newId, org: org }
+      { _id: newId, org }
     ).session(session);
     await devicesModel.updateOne(
-      { _id: oldId, org: org },
+      { _id: oldId, org },
       {
         $set: {
           deviceToken: newDevice.deviceToken,

@@ -73,7 +73,7 @@ organizationsRouter.route('/')
       })
       .then(() => {
         const orgBody = { ...req.body, account: req.user.defaultAccount };
-        return organizations.create([orgBody], { session: session });
+        return organizations.create([orgBody], { session });
       })
       .then((_org) => {
         org = _org[0];
@@ -83,7 +83,7 @@ organizationsRouter.route('/')
           // Update
           { defaultOrg: org._id },
           // Options
-          { upsert: false, new: true, session: session }
+          { upsert: false, new: true, session }
         );
       })
       .then((updUser) => {
@@ -92,7 +92,7 @@ organizationsRouter.route('/')
         return accounts.findOneAndUpdate(
           { _id: updUser.defaultAccount },
           { $addToSet: { organizations: org._id } },
-          { upsert: false, new: true, session: session }
+          { upsert: false, new: true, session }
         );
       })
       .then((updAccount) => {
@@ -189,7 +189,7 @@ organizationsRouter.route('/:orgId')
           return accounts.findOneAndUpdate(
             { _id: req.user.defaultAccount },
             { $pull: { organizations: req.params.orgId } },
-            { upsert: false, new: true, session: session }
+            { upsert: false, new: true, session }
           );
         } else {
           throw new Error('Please select an organization to delete it');
@@ -208,32 +208,32 @@ organizationsRouter.route('/:orgId')
           _id: req.params.orgId,
           account: req.user.defaultAccount
         }, {
-          session: session
+          session
         });
       })
     // Remove all memberships that belong to the organization, but keep group even if empty
       .then(() => {
-        return membership.deleteMany({ organization: req.params.orgId }, { session: session });
+        return membership.deleteMany({ organization: req.params.orgId }, { session });
       })
     // Remove organization inventory (devices, tokens, tunnelIds, tunnels)
       .then(() => {
-        return tunnels.deleteMany({ org: req.params.orgId }, { session: session });
+        return tunnels.deleteMany({ org: req.params.orgId }, { session });
       })
       .then(() => {
-        return tunnelIds.deleteMany({ org: req.params.orgId }, { session: session });
+        return tunnelIds.deleteMany({ org: req.params.orgId }, { session });
       })
       .then(() => {
-        return tokens.deleteMany({ org: req.params.orgId }, { session: session });
+        return tokens.deleteMany({ org: req.params.orgId }, { session });
       })
       .then(() => {
-        return AccessToken.deleteMany({ organization: req.params.orgId }, { session: session });
+        return AccessToken.deleteMany({ organization: req.params.orgId }, { session });
       })
       .then(async () => {
         // Find all devices for organization
         const orgDevices = await devices.find(
           { org: req.params.orgId },
           { machineId: 1, _id: 0 },
-          { session: session }
+          { session }
         );
         // Get the account total device count
         const deviceCount = await devices
@@ -243,7 +243,7 @@ organizationsRouter.route('/:orgId')
           .countDocuments({ account: req.user.defaultAccount._id, org: req.params.orgId })
           .session(session);
         // Delete all devices
-        await devices.deleteMany({ org: req.params.orgId }, { session: session });
+        await devices.deleteMany({ org: req.params.orgId }, { session });
         // Unregister a device (by removing the removed org number)
         await flexibilling.registerDevice({
           account: req.user.defaultAccount._id,
@@ -295,5 +295,5 @@ organizationsRouter.route('/:orgId')
 
 // Default exports
 module.exports = {
-  organizationsRouter: organizationsRouter
+  organizationsRouter
 };

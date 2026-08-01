@@ -266,7 +266,7 @@ class PeersService {
         return Service.successResponse(null, 204);
       } else {
         logger.error('Failed to remove peer', {
-          params: { id, org, orgList, peer, resp: resp }
+          params: { id, org, orgList, peer, resp }
         });
         return Service.rejectResponse('Peer not found', 404);
       }

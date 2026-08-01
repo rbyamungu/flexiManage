@@ -77,7 +77,7 @@ deviceQueueRouter.route('/:state')
           state: req.params.state,
           jobs: req.body
         },
-        req: req
+        req
       });
     try {
       await deviceQueues.removeJobIdsByOrg(req.user.defaultOrg._id.toString(), req.body);

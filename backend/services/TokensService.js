@@ -179,7 +179,7 @@ class TokensService {
       const tokenData = {
         org: orgList[0].toString(),
         account: user.defaultAccount._id,
-        server: server
+        server
       };
       // Update token with repo if needed
       const repoUrl = configs.get('SwRepositoryUrl');

@@ -41,16 +41,16 @@ class HighAvailability {
       wait: 1000
     };
     this.leader = new Leader(this.redis, options);
-    logger.info('HighAvailability init', { params: { redisUrl: redisUrl, options: options } });
+    logger.info('HighAvailability init', { params: { redisUrl, options } });
 
     this.leader.on('error', (err) => {
-      logger.error('HighAvailability error', { params: { redisUrl: redisUrl, err: err.message } });
+      logger.error('HighAvailability error', { params: { redisUrl, err: err.message } });
     });
     this.leader.on('elected', () => {
-      logger.info('HighAvailability elected', { params: { redisUrl: redisUrl } });
+      logger.info('HighAvailability elected', { params: { redisUrl } });
     });
     this.leader.on('revoked', () => {
-      logger.info('HighAvailability revoked', { params: { redisUrl: redisUrl } });
+      logger.info('HighAvailability revoked', { params: { redisUrl } });
     });
 
     // Try to elect this as active
@@ -75,7 +75,7 @@ class HighAvailability {
   }
 }
 
-var highAvailabilityHandler = null;
+let highAvailabilityHandler = null;
 module.exports = function (redisUrl) {
   if (highAvailabilityHandler) return highAvailabilityHandler;
   else {

@@ -27,8 +27,8 @@ class FwLimiter {
 
     this.limiter = new RateLimiterMemory({
       points: counts,
-      duration: duration,
-      blockDuration: blockDuration
+      duration,
+      blockDuration
     });
   }
 

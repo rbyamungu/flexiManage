@@ -1,4 +1,3 @@
-
 // flexiWAN SD-WAN software - flexiEdge, flexiManage.
 // For more information go to https://flexiwan.com
 // Copyright (C) 2019-2020  flexiWAN Ltd.
@@ -131,7 +130,7 @@ const toMessageContents = (message) => {
 const setSyncStateOnJobQueueFunc = async (machineId, message) => {
   try {
     const device = await devices.findOne(
-      { machineId: machineId },
+      { machineId },
       { 'sync.hash': 1, 'sync.state': 1, versions: 1 }
     );
 
@@ -199,10 +198,10 @@ const updateSyncState = async (org, deviceId, state) => {
   const set =
     state === 'synced'
       ? {
-        'sync.state': state,
-        'sync.autoSync': 'on',
-        'sync.trials': 0
-      }
+          'sync.state': state,
+          'sync.autoSync': 'on',
+          'sync.trials': 0
+        }
       : { 'sync.state': state };
   return devices.updateOne(
     { org, _id: deviceId },
@@ -268,7 +267,7 @@ const queueFullSyncJob = async (device, hash, org, username = 'system') => {
   }
 
   // Increment auto sync trials
-  var res = await incAutoSyncTrials(deviceId);
+  const res = await incAutoSyncTrials(deviceId);
   // when no trials were incremented, this means that the maximum
   // limit of retries has been reached.
   if (res.nModified === 0) {
@@ -285,7 +284,7 @@ const queueFullSyncJob = async (device, hash, org, username = 'system') => {
     username,
     org,
     // Data
-    { title: 'Sync device ' + hostname, tasks: tasks },
+    { title: 'Sync device ' + hostname, tasks },
     // Response data
     {
       method: 'sync',
@@ -328,7 +327,7 @@ const complete = async (jobId, res) => {
     params: { }
   });
   await devices.updateOne(
-    { machineId: machineId },
+    { machineId },
     { 'sync.hash': '' },
     { upsert: false }
   );
@@ -350,7 +349,7 @@ const complete = async (jobId, res) => {
  */
 const error = async (jobId, res) => {
   logger.error('Sync device job failed', {
-    params: { result: res, jobId: jobId }
+    params: { result: res, jobId }
   });
 };
 

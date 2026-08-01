@@ -366,7 +366,7 @@ class ApplicationsService {
         // send remove-jobs for needed devices
         if (installedApp.status === 'installed' || installedApp.status === 'installing') {
           await dispatcher.apply(
-            [device], 'application', user, { org: orgList[0], meta: { op: 'uninstall', id: id } }
+            [device], 'application', user, { org: orgList[0], meta: { op: 'uninstall', id } }
           );
         }
 
@@ -445,7 +445,7 @@ class ApplicationsService {
       if (!valid) {
         logger.warn('Application update failed',
           {
-            params: { config: configurationRequest, err: err }
+            params: { config: configurationRequest, err }
           });
         return Service.rejectResponse(err, 500);
       }
@@ -461,7 +461,7 @@ class ApplicationsService {
       // Update devices if needed
       if (isNeedToUpdatedDevices && installedDevices.length > 0) {
         await dispatcher.apply(installedDevices, 'application',
-          user, { org: orgList[0], meta: { op: 'config', id: id } });
+          user, { org: orgList[0], meta: { op: 'config', id } });
       }
 
       const parsed = await ApplicationsService.selectApplicationParams(updated);
@@ -559,7 +559,7 @@ class ApplicationsService {
       });
 
       await dispatcher.apply(opDevices, 'application',
-        user, { org: orgList[0], meta: { op: 'upgrade', id: id, newVersion: newVersion } });
+        user, { org: orgList[0], meta: { op: 'upgrade', id, newVersion } });
 
       return Service.successResponse({ data: 'ok' });
     } catch (e) {

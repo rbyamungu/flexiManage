@@ -99,8 +99,8 @@ const apply = async (devicesList, user, data) => {
           method: 'modifyHardware',
           data: {
             device: _id,
-            org: org,
-            machineId: machineId,
+            org,
+            machineId,
             hardwareChange: 'cpuInfo'
           }
         },
@@ -142,7 +142,8 @@ const apply = async (devicesList, user, data) => {
     return { fulfilled, reasons };
   }, { fulfilled: [], reasons: [] });
   const status = fulfilled.length < devicesList.length
-    ? 'partially completed' : 'completed';
+    ? 'partially completed'
+    : 'completed';
   const message = fulfilled.length < devicesList.length
     ? `Warning: ${fulfilled.length} of ${devicesList.length} modify device hardware jobs added.` +
       `Some devices have following errors: ${reasons.join('. ')}`
@@ -158,7 +159,7 @@ const apply = async (devicesList, user, data) => {
  */
 const complete = async (jobId, res) => {
   logger.info('Modify device hardware complete', {
-    params: { result: res, jobId: jobId }
+    params: { result: res, jobId }
   });
 
   const { hardwareChange, device, agentMessage, org } = res;
@@ -170,7 +171,7 @@ const complete = async (jobId, res) => {
 const updateCpuInfo = async (deviceId, orgId, cpuInfo) => {
   await devices.updateOne(
     { _id: deviceId, org: orgId },
-    { $set: { cpuInfo: cpuInfo } },
+    { $set: { cpuInfo } },
     { upsert: false }
   );
 };
@@ -183,7 +184,7 @@ const updateCpuInfo = async (deviceId, orgId, cpuInfo) => {
  */
 const error = async (jobId, res) => {
   logger.error('Modify device hardware job failed', {
-    params: { result: res, jobId: jobId }
+    params: { result: res, jobId }
   });
 };
 
@@ -204,8 +205,8 @@ const remove = async (job) => {
 };
 
 module.exports = {
-  apply: apply,
-  complete: complete,
-  remove: remove,
-  error: error
+  apply,
+  complete,
+  remove,
+  error
 };

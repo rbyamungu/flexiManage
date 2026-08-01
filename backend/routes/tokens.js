@@ -19,8 +19,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const tokens = require('../models/tokens');
 const wrapper = require('./wrapper');
-var jwt = require('jsonwebtoken');
-var configs = require('../configs.js')();
+const jwt = require('jsonwebtoken');
+const configs = require('../configs.js')();
 const tokensRouter = express.Router();
 tokensRouter.use(bodyParser.json());
 

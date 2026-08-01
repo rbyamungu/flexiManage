@@ -398,7 +398,7 @@ class Configs {
   constructor (env) {
     const environment = env || this.getEnv();
     console.log('environment=' + environment);
-    const combinedConfig = { ...configEnv.default, ...configEnv[environment], environment: environment };
+    const combinedConfig = { ...configEnv.default, ...configEnv[environment], environment };
 
     // Allow to override any configuration value from environment
     Object.keys(combinedConfig).forEach(k => {
@@ -473,7 +473,7 @@ class Configs {
       } catch (err) {
         // the configs module is used by logger, so just console error
         console.error('Could not convert config param', {
-          params: { key: key, value: this.config_values[key], message: err.message }
+          params: { key, value: this.config_values[key], message: err.message }
         });
       }
     }
@@ -525,7 +525,7 @@ class Configs {
   }
 }
 
-var configs = null;
+let configs = null;
 module.exports = function (env = null) {
   if (configs) return configs;
   else {

@@ -73,20 +73,20 @@ const queueMlPolicyJob = async (deviceList, op, requestTime, policy, user, org) 
         const { _id, priority, action, classification } = rule;
         return {
           id: _id,
-          priority: priority,
-          classification: classification,
+          priority,
+          classification,
           'apply-on-wan-rx': policy.applyOnWan,
           'override-default-route': policy.overrideDefaultRoute,
-          action: action
+          action
         };
       });
     }
     const data = {
       policy: {
-        device: { _id: _id, mlpolicy: policies.multilink },
-        requestTime: requestTime,
-        op: op,
-        org: org
+        device: { _id, mlpolicy: policies.multilink },
+        requestTime,
+        op,
+        org
       }
     };
 
@@ -97,8 +97,8 @@ const queueMlPolicyJob = async (deviceList, op, requestTime, policy, user, org) 
     if (installIds[_id] === true) {
       const task = {
         entity: 'agent',
-        message: message,
-        params: params
+        message,
+        params
       };
       op === 'install' ? requests.unshift(task) : requests.push(task);
 
@@ -116,12 +116,12 @@ const queueMlPolicyJob = async (deviceList, op, requestTime, policy, user, org) 
         // Data
         {
           title: jobTitle,
-          tasks: tasks
+          tasks
         },
         // Response data
         {
           method: 'mlpolicy',
-          data: data
+          data
         },
         // Metadata
         { priority: 'normal', attempts: 1, removeOnComplete: false },
@@ -148,7 +148,7 @@ const getOpDevices = async (devicesObj, org, policy) => {
   const { _id } = policy;
   const result = await devices.find(
     {
-      org: org,
+      org,
       'policies.multilink.policy': _id,
       'policies.multilink.status': { $in: ['installing', 'installed'] }
     },
@@ -192,7 +192,7 @@ const apply = async (deviceList, user, data) => {
       // Retrieve policy from database
       mLPolicy = await MultiLinkPolicies.findOne(
         {
-          org: org,
+          org,
           _id: id
         },
         {
@@ -244,23 +244,23 @@ const applyPolicy = async (opDevices, mLPolicy, op, user, org) => {
     // Update devices policy in the database
     const update = op === 'install'
       ? {
-        $set: {
-          'policies.multilink': {
-            policy: mLPolicy._id,
-            status: 'installing',
-            requestTime: requestTime
+          $set: {
+            'policies.multilink': {
+              policy: mLPolicy._id,
+              status: 'installing',
+              requestTime
+            }
           }
         }
-      }
       : {
-        $set: {
-          'policies.multilink.status': 'uninstalling',
-          'policies.multilink.requestTime': requestTime
-        }
-      };
+          $set: {
+            'policies.multilink.status': 'uninstalling',
+            'policies.multilink.requestTime': requestTime
+          }
+        };
 
     await devices.updateMany(
-      { _id: { $in: deviceIds }, org: org },
+      { _id: { $in: deviceIds }, org },
       update,
       { upsert: false }
     ).session(session);
@@ -302,7 +302,7 @@ const applyPolicy = async (opDevices, mLPolicy, op, user, org) => {
 
     // Update devices' policy status in the database
     await devices.updateMany(
-      { _id: { $in: failedDevices }, org: org },
+      { _id: { $in: failedDevices }, org },
       { $set: { 'policies.multilink.status': 'job queue failed' } },
       { upsert: false }
     );
@@ -334,7 +334,7 @@ const complete = async (jobId, res) => {
       : { $set: { 'policies.multilink': {} } };
 
     await devices.updateOne(
-      { _id: _id, org: org },
+      { _id, org },
       update,
       { upsert: false }
     );
@@ -346,7 +346,7 @@ const complete = async (jobId, res) => {
     }
   } catch (err) {
     logger.error('Device policy status update failed', {
-      params: { jobId: jobId, res: res, err: err.message }
+      params: { jobId, res, err: err.message }
     });
   }
 };
@@ -384,7 +384,7 @@ const completeSync = async (jobId, jobsData) => {
  */
 const error = async (jobId, res) => {
   logger.error('Policy job failed', {
-    params: { result: res, jobId: jobId }
+    params: { result: res, jobId }
   });
 
   const { policy } = res;
@@ -393,7 +393,7 @@ const error = async (jobId, res) => {
   try {
     const status = `${op === 'install' ? '' : 'un'}installation failed`;
     await devices.updateOne(
-      { _id: _id, org: org },
+      { _id, org },
       { $set: { 'policies.multilink.status': status } },
       { upsert: false }
     );
@@ -405,7 +405,7 @@ const error = async (jobId, res) => {
     }
   } catch (err) {
     logger.error('Device policy status update failed', {
-      params: { jobId: jobId, res: res, err: err.message }
+      params: { jobId, res, err: err.message }
     });
   }
 };
@@ -433,8 +433,8 @@ const remove = async (job) => {
     try {
       await devices.updateOne(
         {
-          _id: _id,
-          org: org,
+          _id,
+          org,
           'policies.multilink.requestTime': { $eq: requestTime }
         },
         { $set: { 'policies.multilink.status': status } },
@@ -449,7 +449,7 @@ const remove = async (job) => {
       }
     } catch (err) {
       logger.error('Device policy status update failed', {
-        params: { job: job, status: status, err: err.message }
+        params: { job, status, err: err.message }
       });
     }
   }
@@ -499,11 +499,11 @@ const sync = async (deviceId, org) => {
         if (enabled) {
           params.rules.push({
             id: _id,
-            priority: priority,
-            classification: classification,
+            priority,
+            classification,
             'apply-on-wan-rx': mLPolicy.applyOnWan,
             'override-default-route': mLPolicy.overrideDefaultRoute,
-            action: action
+            action
           });
         }
       });
@@ -526,11 +526,11 @@ const sync = async (deviceId, org) => {
 };
 
 module.exports = {
-  apply: apply,
-  complete: complete,
-  completeSync: completeSync,
-  error: error,
-  remove: remove,
-  sync: sync,
-  applyPolicy: applyPolicy
+  apply,
+  complete,
+  completeSync,
+  error,
+  remove,
+  sync,
+  applyPolicy
 };

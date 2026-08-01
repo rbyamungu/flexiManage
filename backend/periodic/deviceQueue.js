@@ -80,7 +80,7 @@ class DeviceQueues {
   }
 }
 
-var checkjobs = null;
+let checkjobs = null;
 module.exports = function () {
   if (checkjobs) return checkjobs;
   else {

@@ -74,13 +74,13 @@ class StatusesInDb {
       for (const device of connectedDevices) {
         const { org, _id, machineId, versions, status } = device;
         const info = {
-          org: org,
+          org,
           deviceObj: _id,
-          machineId: machineId,
+          machineId,
           version: versions.agent,
           ready: true,
           running: status === 'running',
-          status: status
+          status
         };
         connections.devices.setDeviceInfo(machineId, info, false);
       }
@@ -266,7 +266,7 @@ class StatusesInDb {
                 org: mongoose.Types.ObjectId(org),
                 num: { $in: tunnelsByStatus[status] }
               },
-              update: { $set: { status: status } }
+              update: { $set: { status } }
             }
           });
         }
@@ -287,7 +287,7 @@ class StatusesInDb {
   }
 }
 
-var statuses = null;
+let statuses = null;
 module.exports = function () {
   if (statuses) return statuses;
   else {

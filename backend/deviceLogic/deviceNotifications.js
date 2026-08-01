@@ -57,7 +57,7 @@ const apply = async (devicesList, user, data) => {
   const opDevices = await Promise.all(
     devicesList.map(d => d.populate('policies.firewall.policy', '_id name rules')
       .populate('interfaces.pathlabels', '_id name description color type')
-      
+
     ));
   const errors = [];
   const applyPromises = [];
@@ -83,7 +83,7 @@ const apply = async (devicesList, user, data) => {
           user.username,
           orgId,
           // Data
-          { title: 'Setting notifications for device: ' + device.hostname, tasks: tasks },
+          { title: 'Setting notifications for device: ' + device.hostname, tasks },
           // Response data
           {
             method: 'notifications',
@@ -113,7 +113,8 @@ const apply = async (devicesList, user, data) => {
     return { fulfilled, reasons };
   }, { fulfilled: [], reasons: errors });
   const status = fulfilled.length < opDevices.length
-    ? 'partially completed' : 'completed';
+    ? 'partially completed'
+    : 'completed';
   const message = fulfilled.length < opDevices.length
     ? `Warning: ${fulfilled.length} of ${opDevices.length} Set device's notifications job added.` +
         ` Some devices have following errors: ${reasons.join('. ')}`
@@ -155,6 +156,6 @@ const sync = async (deviceId) => {
 };
 
 module.exports = {
-  apply: apply,
-  sync: sync
+  apply,
+  sync
 };

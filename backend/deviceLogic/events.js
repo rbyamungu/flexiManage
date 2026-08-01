@@ -118,7 +118,7 @@ class Events {
       { org, num },
       {
         $set: {
-          isPending: isPending,
+          isPending,
           pendingReason: isPending ? reason : '',
           pendingType: isPending ? pendingType : '',
           pendingTime: isPending ? new Date() : ''
@@ -151,7 +151,7 @@ class Events {
       {
         $set: {
           pendingReason: reason,
-          pendingType: pendingType,
+          pendingType,
           pendingTime: new Date()
         }
       },
@@ -180,7 +180,7 @@ class Events {
         tunnelId: null,
         interfaceId: origIfc._id
       },
-      resolved: resolved
+      resolved
     }]);
   };
 
@@ -775,7 +775,7 @@ class Events {
       const orig = this.changedDevices[deviceId].orig;
       const machineId = orig.machineId;
       modifyDevices[machineId] = {
-        orig: orig,
+        orig,
         updated: updatedDevices[deviceId]
       };
     }

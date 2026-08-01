@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-var configs = require('../configs.js')();
+const configs = require('../configs.js')();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('./cors');
 const { verifyPermission } = require('../authenticate');
 const resourcesModel = require('../models/resources');
-var randomNum = require('../utils/random-key');
+const randomNum = require('../utils/random-key');
 const createError = require('http-errors');
 const logger = require('../logging/logging')({ module: module.filename, type: 'req' });
 
@@ -70,13 +70,13 @@ resourcesRouter
       })
       .then(
         resp => {
-          logger.info('Linked created successfully', { params: { response: resp }, req: req });
+          logger.info('Linked created successfully', { params: { response: resp }, req });
           res.statusCode = 200;
           res.setHeader('Content-Type', 'application/json');
           return res.json(resp);
         },
         err => {
-          logger.warn('Failed to generate link', { params: { err: err.message }, req: req });
+          logger.warn('Failed to generate link', { params: { err: err.message }, req });
           const fErr = formatErr(err, req.body);
           return next(createError(fErr.status, fErr.error));
         }

@@ -27,7 +27,7 @@ const { devices } = require('../models/devices');
 const firewallPoliciesModel = require('../models/firewallPolicies');
 const multiLinkPoliciesModel = require('../models/mlpolicies');
 const { getAccessTokenOrgList } = require('../utils/membershipUtils');
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const find = require('lodash/find');
 const remove = require('lodash/remove');
 const IPCidr = require('ip-cidr');
@@ -126,7 +126,7 @@ class AppIdentificationsService {
       const orgList = await getAccessTokenOrgList(user, org, false);
       const appIdentsRes =
         await appIdentifications.findOne({ 'meta.org': { $in: orgList } });
-      const appIdentRes = find(appIdentsRes.appIdentifications, { id: id });
+      const appIdentRes = find(appIdentsRes.appIdentifications, { id });
       if (!appIdentRes) {
         return Service.rejectResponse('Requested object was not found', 404);
       }
@@ -297,7 +297,7 @@ class AppIdentificationsService {
       const result =
         await appIdentifications.findOne({ 'meta.org': { $in: orgList } });
       const objectId = mongoose.Types.ObjectId();
-      const newAppIdent = { ...appIdentImpCustReq, _id: objectId, id: id };
+      const newAppIdent = { ...appIdentImpCustReq, _id: objectId, id };
 
       // if organization document already exists
       if (result !== null) {
@@ -320,7 +320,7 @@ class AppIdentificationsService {
         const importedAppIdentsRes =
         await importedAppIdentifications.findOne({}, projection);
         const originalAppIdent =
-          find(importedAppIdentsRes.appIdentifications, { id: id });
+          find(importedAppIdentsRes.appIdentifications, { id });
         if (originalAppIdent) {
           if (
             originalAppIdent.category === category &&
@@ -335,7 +335,7 @@ class AppIdentificationsService {
           }
         }
 
-        const oldAppIdentification = find(result.imported, { id: id });
+        const oldAppIdentification = find(result.imported, { id });
         if (oldAppIdentification) {
           oldAppIdentification.category = category;
           oldAppIdentification.serviceClass = serviceClass;
@@ -410,11 +410,14 @@ class AppIdentificationsService {
       }, { name: 1 });
 
       if (firewallPoliciesUsed.length || multiLinkPoliciesUsed.length || devicesUsed.length) {
-        let usedBy = !firewallPoliciesUsed.length ? ''
+        let usedBy = !firewallPoliciesUsed.length
+          ? ''
           : `Firewall policies (${firewallPoliciesUsed.map(_ => _.name).join(',')}) `;
-        usedBy += !multiLinkPoliciesUsed.length ? ''
+        usedBy += !multiLinkPoliciesUsed.length
+          ? ''
           : `ML policies (${multiLinkPoliciesUsed.map(_ => _.name).join(',')}) `;
-        usedBy += !devicesUsed.length ? ''
+        usedBy += !devicesUsed.length
+          ? ''
           : `Devices (${devicesUsed.map(_ => _.name).join(',')}) `;
 
         return Service.rejectResponse(
@@ -443,7 +446,8 @@ class AppIdentificationsService {
       const orgList = await getAccessTokenOrgList(user, org, true);
       const response = await getAppIdentificationUpdateAt(orgList);
       const updateAt = (response.importedUpdatedAt >= response.customUpdatedAt)
-        ? response.importedUpdatedAt : response.customUpdatedAt;
+        ? response.importedUpdatedAt
+        : response.customUpdatedAt;
 
       const devicesPipeline = [
         {

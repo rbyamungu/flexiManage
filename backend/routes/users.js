@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-var configs = require('../configs')();
+const configs = require('../configs')();
 const express = require('express');
 const router = express.Router();
 const createError = require('http-errors');
@@ -134,7 +134,7 @@ router.route('/register')
           billingCustomerId: customerId,
           isSubscriptionValid: true,
           trial_end: subscription?.[0]?.subscription?.trial_end ?? null
-        }], { session: session });
+        }], { session });
       })
       .then(async (account) => {
         registerAccount = account[0];
@@ -144,7 +144,7 @@ router.route('/register')
           description: 'Default Organization',
           group: 'default',
           account: registerAccount._id
-        }], { session: session });
+        }], { session });
         const registerOrg = orgs[0];
 
         const validateKey = randomKey(30);
@@ -191,7 +191,7 @@ router.route('/register')
             perms: preDefinedPermissions.account_owner
           }
         ];
-        return membership.create(mems, { session: session });
+        return membership.create(mems, { session });
       })
       .then(() => {
         const uiServerUrl = getUiServerUrl(req);
@@ -257,11 +257,11 @@ router.route('/register')
         if (registerCustomerId) {
           if (await flexibilling.removeCustomer({ id: registerCustomerId })) {
             logger.error('Deleted billing account', {
-              params: { registerCustomerId: registerCustomerId }
+              params: { registerCustomerId }
             });
           } else {
             logger.error('Deleted billing account failed', {
-              params: { registerCustomerId: registerCustomerId }
+              params: { registerCustomerId }
             });
           }
         }
@@ -582,7 +582,7 @@ const verifyMfaRateLimit = rateLimit({
     logger.warn(
       'MFA versification rate limit exceeded. blocking request for one second', {
         params: { ip: req.ip },
-        req: req
+        req
       });
   }
 });

@@ -93,13 +93,13 @@ const apply = async (device, user, data) => {
     try {
       const job = await deviceQueues.addJob(machineId, userName, org,
         // Data
-        { title: `${titlePrefix} DHCP in device ${device.hostname}`, tasks: tasks },
+        { title: `${titlePrefix} DHCP in device ${device.hostname}`, tasks },
         // Response data
         {
           method: 'dhcp',
           data: {
             deviceId: device.id,
-            dhcpId: dhcpId,
+            dhcpId,
             ...(data.origDhcp) && { origDhcp: data.origDhcp },
             message
           }
@@ -129,7 +129,7 @@ const apply = async (device, user, data) => {
 const complete = async (jobId, res) => {
   if (!res || !res.deviceId || !res.message || !res.dhcpId) {
     logger.warn('DHCP job complete got an invalid job result', {
-      params: { result: res, jobId: jobId }
+      params: { result: res, jobId }
     });
     return;
   }
@@ -156,7 +156,7 @@ const complete = async (jobId, res) => {
     }
   } catch (error) {
     logger.warn('Complete DHCP job, failed to update database', {
-      params: { result: res, jobId: jobId }
+      params: { result: res, jobId }
     });
   }
 };
@@ -186,7 +186,7 @@ const rollbackDhcpChanges = async (deviceId, origDhcp) => {
  * @return {void}
  */
 const error = async (jobId, res) => {
-  logger.info('DHCP job failed', { params: { result: res, jobId: jobId } });
+  logger.info('DHCP job failed', { params: { result: res, jobId } });
 
   try {
     switch (res.message) {
@@ -223,7 +223,7 @@ const error = async (jobId, res) => {
     }
   } catch (error) {
     logger.warn('DHCP job error, failed to update database', {
-      params: { result: res, jobId: jobId, message: error.message }
+      params: { result: res, jobId, message: error.message }
     });
   }
 };
@@ -263,8 +263,8 @@ const remove = async (job) => {
 };
 
 module.exports = {
-  apply: apply,
-  complete: complete,
-  error: error,
-  remove: remove
+  apply,
+  complete,
+  error,
+  remove
 };

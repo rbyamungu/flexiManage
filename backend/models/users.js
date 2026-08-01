@@ -16,9 +16,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 const validators = require('./validators');
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
-var passportLocalMongoose = require('passport-local-mongoose');
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+const passportLocalMongoose = require('passport-local-mongoose');
 const mongoConns = require('../mongoConns.js')();
 
 /**
@@ -120,7 +120,7 @@ const User = new Schema({
     default: 'unverified'
   },
   // tokens
-  emailTokens: emailTokens,
+  emailTokens,
   // Default user account
   defaultAccount: {
     type: mongoose.Schema.Types.ObjectId,
@@ -160,7 +160,7 @@ const User = new Schema({
 const maxInterval = 30000; // 5 minutes
 const options = {
   limitAttempts: true,
-  maxInterval: maxInterval,
+  maxInterval,
   errorMessages: {
     // eslint-disable-next-line max-len
     AttemptTooSoonError: `Too many login attempts. try again in ${Math.floor(maxInterval / 6000)} minutes`

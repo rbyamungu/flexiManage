@@ -91,29 +91,31 @@ class NotificationsService {
         query.status = status;
       }
 
-      const pipeline = op !== 'count' ? [
-        {
-          $match: query
-        },
-        {
-          $project: {
-            _id: { $toString: '$_id' },
-            time: 1,
-            title: 1,
-            details: 1,
-            targets: 1,
-            agentAlertsInfo: 1,
-            status: 1,
-            severity: 1,
-            count: 1,
-            emailSent: 1,
-            resolved: 1,
-            org: 1,
-            isInfo: 1,
-            lastResolvedStatusChange: 1
-          }
-        }
-      ] : [];
+      const pipeline = op !== 'count'
+        ? [
+            {
+              $match: query
+            },
+            {
+              $project: {
+                _id: { $toString: '$_id' },
+                time: 1,
+                title: 1,
+                details: 1,
+                targets: 1,
+                agentAlertsInfo: 1,
+                status: 1,
+                severity: 1,
+                count: 1,
+                emailSent: 1,
+                resolved: 1,
+                org: 1,
+                isInfo: 1,
+                lastResolvedStatusChange: 1
+              }
+            }
+          ]
+        : [];
       let devicesArray;
       let deviceFilterWasGiven = false;
       const parsedFilters = filters ? JSON.parse(filters) : null;
@@ -550,7 +552,7 @@ class NotificationsService {
           updatedNotificationsByOrg.set(orgId, currentRules);
         }
 
-        await notificationsConf.bulkWrite(bulkUpdates, { session: session });
+        await notificationsConf.bulkWrite(bulkUpdates, { session });
       });
 
       let devicesShouldReceiveJobs = 0;
@@ -573,7 +575,8 @@ class NotificationsService {
         }
       }
       const status = fulfilledJobs < devicesShouldReceiveJobs.length
-        ? 'partially completed' : 'completed';
+        ? 'partially completed'
+        : 'completed';
       const message = fulfilledJobs < devicesShouldReceiveJobs.length
         ? `Warning: ${fulfilledJobs} of ${devicesShouldReceiveJobs.length} Set device's notifications job added.`
         : 'The notifications were updated successfully';
@@ -652,7 +655,7 @@ class NotificationsService {
           data: { error: invalidNotifications }
         });
       }
-      await notificationsConf.update({ account: account }, { $set: { account: account, rules } }, { upsert: true });
+      await notificationsConf.update({ account }, { $set: { account, rules } }, { upsert: true });
 
       return Service.successResponse(
         { status: 'completed', message: 'Current settings successfully established as the default for new organizations' }, 202
@@ -694,13 +697,15 @@ class NotificationsService {
         const orgData = await Organizations.find({ _id: orgId });
         // Viewers are restricted to access only their own user details.
         // Since these details are already available in the 'user' object, we avoid making a redundant database call
-        const members = isViewer ? [{ user: user._id }] : await membership.find({
-          $or: [
-            { to: 'organization', organization: orgId },
-            { to: 'account', account: orgData[0].account },
-            { to: 'group', account: orgData[0].account, group: orgData[0].group }
-          ]
-        });
+        const members = isViewer
+          ? [{ user: user._id }]
+          : await membership.find({
+            $or: [
+              { to: 'organization', organization: orgId },
+              { to: 'account', account: orgData[0].account },
+              { to: 'group', account: orgData[0].account, group: orgData[0].group }
+            ]
+          });
 
         const notificationsData = await notificationsConf.find({ org: orgId });
         // A map for storing usersData
@@ -832,7 +837,8 @@ class NotificationsService {
 
         for (const org of orgIds) {
           if (!isViewer && !(org in userOrgAccess)) {
-            const errorMsg = org ? 'One of the users does not have permission to access the organization'
+            const errorMsg = org
+              ? 'One of the users does not have permission to access the organization'
               : `All the users must be authorized to each one of the organizations under the ${group ? 'group' : 'account'}`;
             logger.warn('Error in email subscription', { params: { err: `user id ${userData._id} is not authorized for the organization: ${org}` } });
             return Service.rejectResponse(errorMsg, 403);

@@ -73,7 +73,7 @@ exports.assignRoutes = function (
       verifyPermission(permissionResource, 'get'),
       (req, res, next) => {
         const defaultOrgId = req.user?.defaultOrg?._id || req.user?.defaultOrg || null;
-        var p = isById
+        const p = isById
           ? model.find({
             _id: mongoose.Types.ObjectId(req.params[idName]),
             org: defaultOrgId
@@ -119,7 +119,7 @@ exports.assignRoutes = function (
                 let p;
                 const defaultOrgId = req.user?.defaultOrg?._id || req.user?.defaultOrg || null;
                 if (isField) {
-                  var set = { $set: {} };
+                  const set = { $set: {} };
                   set.$set[fieldName] = [];
                   p = model.update(
                     {
@@ -265,8 +265,8 @@ exports.assignRoutes = function (
                         },
                         err => {
                           logger.warn('Failed to update resource', {
-                            params: { err: err },
-                            req: req
+                            params: { err },
+                            req
                           });
                           if (formatErr) {
                             const fErr = formatErr(err, req.body);
@@ -301,7 +301,7 @@ exports.assignRoutes = function (
                 let p;
                 if (isField) {
                   const defaultOrgId = req.user?.defaultOrg?._id || req.user?.defaultOrg || null;
-                  var set = { $addToSet: {} };
+                  const set = { $addToSet: {} };
                   set.$addToSet[fieldName] = { $each: req.body };
                   p = model.update(
                     {
@@ -322,7 +322,7 @@ exports.assignRoutes = function (
                           checkresp => {
                             logger.info('Resource created successfully', {
                               params: { response: resp },
-                              req: req
+                              req
                             });
                             res.statusCode = 200;
                             res.setHeader('Content-Type', 'application/json');
@@ -339,8 +339,8 @@ exports.assignRoutes = function (
                   },
                   err => {
                     logger.warn('Failed to create resource', {
-                      params: { err: err },
-                      req: req
+                      params: { err },
+                      req
                     });
                     if (formatErr) {
                       const fErr = formatErr(err, req.body);

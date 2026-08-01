@@ -82,8 +82,8 @@ class TunnelsService {
       const { type, warningThreshold, criticalThreshold } = notificationSettings;
       if (type === 'tunnel') {
         notificationsDict[notificationName] = {
-          warningThreshold: warningThreshold,
-          criticalThreshold: criticalThreshold
+          warningThreshold,
+          criticalThreshold
         };
       }
     }
@@ -399,7 +399,8 @@ class TunnelsService {
         return arr;
       }, []);
       const status = fulfilled.length < jobsToSend.length
-        ? 'partially completed' : 'completed';
+        ? 'partially completed'
+        : 'completed';
       const message = fulfilled.length < jobsToSend.length
         ? `${fulfilled.length} of ${jobsToSend.length} tunnel notifications jobs added`
         : 'The notifications were updated successfully';

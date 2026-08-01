@@ -1,4 +1,3 @@
-
 // flexiWAN SD-WAN software - flexiEdge, flexiManage.
 // For more information go to https://flexiwan.com
 // Copyright (C) 2022  flexiWAN Ltd.
@@ -94,7 +93,7 @@ async function up () {
       operations.push({
         updateOne: {
           filter: { _id: device._id },
-          update: { $set: { routingFilters: routingFilters } },
+          update: { $set: { routingFilters } },
           upsert: false
         }
       });
@@ -175,7 +174,7 @@ async function down () {
       operations.push({
         updateOne: {
           filter: { _id: device._id },
-          update: { $set: { routingFilters: routingFilters } },
+          update: { $set: { routingFilters } },
           upsert: false
         }
       });

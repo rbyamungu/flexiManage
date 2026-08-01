@@ -15,15 +15,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-var configs = require('../configs.js')();
+const configs = require('../configs.js')();
 const cors = require('cors');
 
 // Whitelist of origins allowed to access resources
 const whitelist = configs.get('corsWhiteList', 'list');
 
 // CORS handler
-var corsOptionsCheck = (req, callback) => {
-  var corsOptions = { exposedHeaders: ['Refresh-JWT', 'refresh-token', 'records-total'] };
+const corsOptionsCheck = (req, callback) => {
+  const corsOptions = { exposedHeaders: ['Refresh-JWT', 'refresh-token', 'records-total'] };
   if (req.header('Origin') && whitelist.indexOf(req.header('Origin')) !== -1) {
     // In whitelist, allow the request to be accepted
     corsOptions.origin = true;

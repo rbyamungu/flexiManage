@@ -29,8 +29,8 @@ async function up () {
         ifc.gateway = ifc.type === 'WAN' ? deviceDoc.defaultRoute : '';
       });
       await devices.update(
-        { _id: _id },
-        { $set: { interfaces: interfaces } },
+        { _id },
+        { $set: { interfaces } },
         { upsert: false }
       );
     }

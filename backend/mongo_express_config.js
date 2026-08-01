@@ -20,7 +20,7 @@
 const os = require('os');
 const hostname = os.hostname();
 
-var mongo = {
+let mongo = {
   // setting the connection string will only give access to that database
   // to see more databases you need to set mongodb.admin to true or add
   // databases to the mongodb.auth list
@@ -32,23 +32,23 @@ var mongo = {
 
 // Accesing Bluemix variable to get MongoDB info
 if (process.env.VCAP_SERVICES) {
-  var dbLabel = 'mongodb-2.4';
-  var env = JSON.parse(process.env.VCAP_SERVICES);
+  const dbLabel = 'mongodb-2.4';
+  const env = JSON.parse(process.env.VCAP_SERVICES);
   if (env[dbLabel]) {
     mongo = env[dbLabel][0].credentials;
   }
 }
 
-var basicAuthUsername = 'ME_CONFIG_BASICAUTH_USERNAME';
-var basicAuthPassword = 'ME_CONFIG_BASICAUTH_PASSWORD';
-var adminUsername = 'ME_CONFIG_MONGODB_ADMINUSERNAME';
-var adminPassword = 'ME_CONFIG_MONGODB_ADMINPASSWORD';
-var dbAuthUsername = 'ME_CONFIG_MONGODB_AUTH_USERNAME';
-var dbAuthPassword = 'ME_CONFIG_MONGODB_AUTH_PASSWORD';
+const basicAuthUsername = 'ME_CONFIG_BASICAUTH_USERNAME';
+const basicAuthPassword = 'ME_CONFIG_BASICAUTH_PASSWORD';
+const adminUsername = 'ME_CONFIG_MONGODB_ADMINUSERNAME';
+const adminPassword = 'ME_CONFIG_MONGODB_ADMINPASSWORD';
+const dbAuthUsername = 'ME_CONFIG_MONGODB_AUTH_USERNAME';
+const dbAuthPassword = 'ME_CONFIG_MONGODB_AUTH_PASSWORD';
 
 function getFileEnv (envVariable) {
-  var origVar = process.env[envVariable];
-  var fileVar = process.env[envVariable + '_FILE'];
+  const origVar = process.env[envVariable];
+  const fileVar = process.env[envVariable + '_FILE'];
 
   if (typeof fileVar !== 'undefined' && fileVar) {
     const fs = require('fs');
@@ -58,7 +58,7 @@ function getFileEnv (envVariable) {
     try {
       if (fs.existsSync(path)) {
         // file exists
-        var varFromFile = fs.readFileSync(path).toString().split(/\r?\n/)[0].trim();
+        const varFromFile = fs.readFileSync(path).toString().split(/\r?\n/)[0].trim();
 
         return varFromFile;
       }
@@ -70,7 +70,7 @@ function getFileEnv (envVariable) {
   }
 }
 
-var meConfigMongodbServer = process.env.ME_CONFIG_MONGODB_SERVER
+const meConfigMongodbServer = process.env.ME_CONFIG_MONGODB_SERVER
   ? process.env.ME_CONFIG_MONGODB_SERVER.split(',')
   : false;
 

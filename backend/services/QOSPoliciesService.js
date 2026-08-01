@@ -249,11 +249,11 @@ class QOSPoliciesService {
         },
         {
           org: orgList[0].toString(),
-          name: name,
-          description: description,
-          advanced: advanced,
-          outbound: outbound,
-          inbound: inbound
+          name,
+          description,
+          advanced,
+          outbound,
+          inbound
         },
         {
           fields: {
@@ -372,11 +372,11 @@ class QOSPoliciesService {
 
       const qosPolicy = await QOSPolicies.create({
         org: orgList[0].toString(),
-        name: name,
-        description: description,
-        advanced: advanced,
-        outbound: outbound,
-        inbound: inbound
+        name,
+        description,
+        advanced,
+        outbound,
+        inbound
       });
 
       const converted = JSON.parse(JSON.stringify(qosPolicy));

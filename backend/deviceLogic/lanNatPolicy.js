@@ -46,7 +46,7 @@ const getLanNatJobInfo = (device, isSync = false) => {
     tasks.push({
       entity: 'agent',
       message: 'add-lan-nat-policy',
-      params: params
+      params
     });
   } else if (!isSync) {
     tasks.push({

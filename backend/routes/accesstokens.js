@@ -89,7 +89,7 @@ router.route('/')
     } catch (error) {
       logger.error('Could not generate token', {
         params: { user: req.user, message: error.message },
-        req: req
+        req
       });
       return next(createError(500));
     }

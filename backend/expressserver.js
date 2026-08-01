@@ -170,7 +170,7 @@ class ExpressServer {
         logger.error(
           'Request rate limit exceeded. blocking request', {
             params: { ip: req.ip },
-            req: req
+            req
           });
       }
     });
@@ -211,14 +211,14 @@ class ExpressServer {
     this.app.use(passport.initialize());
 
     // Enable db admin only in development mode
-//    if (configs.get('environment') === 'development') {
-//      logger.warn('Warning: Enabling UI database access');
-      // mongo database UI
-//      const mongoExpress = require('mongo-express/lib/middleware');
-//      const mongoExpressConfig = require('./mongo_express_config');
-//      const expressApp = await mongoExpress(mongoExpressConfig);
-//      this.app.use('/admindb', expressApp);
-//    }
+    //    if (configs.get('environment') === 'development') {
+    //      logger.warn('Warning: Enabling UI database access');
+    // mongo database UI
+    //      const mongoExpress = require('mongo-express/lib/middleware');
+    //      const mongoExpressConfig = require('./mongo_express_config');
+    //      const expressApp = await mongoExpress(mongoExpressConfig);
+    //      this.app.use('/admindb', expressApp);
+    //    }
 
     // Enable routes for non-authorized links
     this.app.use('/ok', express.static(path.join(__dirname, 'public', 'ok.html')));
@@ -301,7 +301,7 @@ class ExpressServer {
   addErrorHandler () {
     // "catchall" handler, for any request that doesn't match one above, send back index.html file.
     this.app.get('*', (req, res, next) => {
-      logger.info('Route not found', { req: req });
+      logger.info('Route not found', { req });
       this.sendIndexFile(req, res);
     });
 

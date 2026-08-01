@@ -16,8 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Module for deviceQueues Unit Test
-var configs = require('../../configs')();
-var deviceQueues = require('../deviceQueue')(configs.get('kuePrefix'), configs.get('redisUrl'));
+const configs = require('../../configs')();
+const deviceQueues = require('../deviceQueue')(configs.get('kuePrefix'), configs.get('redisUrl'));
 const logger = require('../../logging/logging')({ module: module.filename, type: 'unit-test' });
 
 describe('Initialization', () => {

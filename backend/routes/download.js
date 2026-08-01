@@ -50,7 +50,7 @@ downloadRouter.route('/:fileId/:fileName')
                 res.setHeader('Content-Disposition', 'attachment; filename="' + obj.fileName + '"');
                 return res.send(token[obj.fieldName]);
               }, (err) => {
-                logger.warn('Failed to download token', { params: { err: err.message }, req: req });
+                logger.warn('Failed to download token', { params: { err: err.message }, req });
                 const fErr = formatErr(err, req.body);
                 return next(createError(fErr.status, fErr.error));
               })
@@ -62,7 +62,7 @@ downloadRouter.route('/:fileId/:fileName')
           }
         }
       }, (err) => {
-        logger.warn('Failed to download token', { params: { err: err.message }, req: req });
+        logger.warn('Failed to download token', { params: { err: err.message }, req });
         const fErr = formatErr(err, req.body);
         return next(createError(fErr.status, fErr.error));
       })

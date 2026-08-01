@@ -81,7 +81,7 @@ const queryDeviceStats = (req, res, next, org, deviceID, startTime, endTime) => 
     return res.json(stats);
   }, (err) => { next(err); })
     .catch((err) => {
-      logger.warn('Failed to get device stats', { params: { err: err.message }, req: req });
+      logger.warn('Failed to get device stats', { params: { err: err.message }, req });
       return next(createError(500, 'Getting device stats'));
     });
 };

@@ -363,23 +363,25 @@ const validateNotificationFields = (eventType, notificationSettingsFields, isTun
 };
 
 const validateEmailNotifications = (emailNotificationsUsersList, allowNull) => {
-  const emailSigningSchema = allowNull ? Joi.object({
-    _id: Joi.string().required(),
-    email: Joi.string().email(),
-    name: Joi.string(),
-    lastName: Joi.string(),
-    signedToCritical: Joi.alternatives().try(Joi.boolean(), Joi.valid(null)).required(),
-    signedToWarning: Joi.alternatives().try(Joi.boolean(), Joi.valid(null)).required(),
-    signedToDaily: Joi.alternatives().try(Joi.boolean(), Joi.valid(null)).required()
-  }) : Joi.object({
-    _id: Joi.string().required(),
-    email: Joi.string().email(),
-    name: Joi.string(),
-    lastName: Joi.string(),
-    signedToCritical: Joi.boolean().required(),
-    signedToWarning: Joi.boolean().required(),
-    signedToDaily: Joi.boolean().required()
-  });
+  const emailSigningSchema = allowNull
+    ? Joi.object({
+      _id: Joi.string().required(),
+      email: Joi.string().email(),
+      name: Joi.string(),
+      lastName: Joi.string(),
+      signedToCritical: Joi.alternatives().try(Joi.boolean(), Joi.valid(null)).required(),
+      signedToWarning: Joi.alternatives().try(Joi.boolean(), Joi.valid(null)).required(),
+      signedToDaily: Joi.alternatives().try(Joi.boolean(), Joi.valid(null)).required()
+    })
+    : Joi.object({
+      _id: Joi.string().required(),
+      email: Joi.string().email(),
+      name: Joi.string(),
+      lastName: Joi.string(),
+      signedToCritical: Joi.boolean().required(),
+      signedToWarning: Joi.boolean().required(),
+      signedToDaily: Joi.boolean().required()
+    });
 
   for (const user of emailNotificationsUsersList) {
     const { error } = emailSigningSchema.validate(user, { abortEarly: false });
@@ -393,16 +395,18 @@ const validateEmailNotifications = (emailNotificationsUsersList, allowNull) => {
 };
 
 const validateWebhookSettings = (webhookNotificationsSettings, allowNull) => {
-  const webHookSettingsSchema = allowNull ? Joi.object({
-    webhookURL: Joi.alternatives().try(Joi.string(), Joi.valid(null)).required(),
-    sendCriticalAlerts: Joi.alternatives().try(Joi.boolean(), Joi.valid(null)).required(),
-    sendWarningAlerts: Joi.alternatives().try(Joi.boolean(), Joi.valid(null)).required()
-  }) : Joi.object({
-    _id: Joi.string(),
-    webhookURL: Joi.string().required(),
-    sendCriticalAlerts: Joi.boolean().required(),
-    sendWarningAlerts: Joi.boolean().required()
-  });
+  const webHookSettingsSchema = allowNull
+    ? Joi.object({
+      webhookURL: Joi.alternatives().try(Joi.string(), Joi.valid(null)).required(),
+      sendCriticalAlerts: Joi.alternatives().try(Joi.boolean(), Joi.valid(null)).required(),
+      sendWarningAlerts: Joi.alternatives().try(Joi.boolean(), Joi.valid(null)).required()
+    })
+    : Joi.object({
+      _id: Joi.string(),
+      webhookURL: Joi.string().required(),
+      sendCriticalAlerts: Joi.boolean().required(),
+      sendWarningAlerts: Joi.boolean().required()
+    });
   const { error } = webHookSettingsSchema.validate(webhookNotificationsSettings, { abortEarly: false });
   let messages = [];
 

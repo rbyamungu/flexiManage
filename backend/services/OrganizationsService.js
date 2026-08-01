@@ -207,31 +207,31 @@ class OrganizationsService {
         // Remove organization
         await Organizations.findOneAndRemove(
           { _id: id, account: user.defaultAccount },
-          { session: session });
+          { session });
 
         // Remove all memberships that belong to the organization, but keep group even if empty
-        await membership.deleteMany({ organization: id }, { session: session });
+        await membership.deleteMany({ organization: id }, { session });
 
         // Remove organization inventory (devices, tokens, tunnelIds, tunnels, etc.)
-        await Tunnels.deleteMany({ org: id }, { session: session });
-        await TunnelIds.deleteMany({ org: id }, { session: session });
-        await Tokens.deleteMany({ org: id }, { session: session });
-        await AccessTokens.deleteMany({ organization: id }, { session: session });
-        await MultiLinkPolicies.deleteMany({ org: id }, { session: session });
-        await PathLabels.deleteMany({ org: id }, { session: session });
-        await Vrrp.deleteMany({ org: id }, { session: session });
-        await Peers.deleteMany({ org: id }, { session: session });
-        await Applications.deleteMany({ org: id }, { session: session });
-        await QosPolicies.deleteMany({ org: id }, { session: session });
-        await FirewallPolicies.deleteMany({ org: id }, { session: session });
-        await appIdentifications.deleteMany({ 'meta.org': id }, { session: session });
-        await importedAppIdentifications.deleteMany({ 'meta.org': id }, { session: session });
-        await NotificationsConf.deleteMany({ org: id }, { session: session });
+        await Tunnels.deleteMany({ org: id }, { session });
+        await TunnelIds.deleteMany({ org: id }, { session });
+        await Tokens.deleteMany({ org: id }, { session });
+        await AccessTokens.deleteMany({ organization: id }, { session });
+        await MultiLinkPolicies.deleteMany({ org: id }, { session });
+        await PathLabels.deleteMany({ org: id }, { session });
+        await Vrrp.deleteMany({ org: id }, { session });
+        await Peers.deleteMany({ org: id }, { session });
+        await Applications.deleteMany({ org: id }, { session });
+        await QosPolicies.deleteMany({ org: id }, { session });
+        await FirewallPolicies.deleteMany({ org: id }, { session });
+        await appIdentifications.deleteMany({ 'meta.org': id }, { session });
+        await importedAppIdentifications.deleteMany({ 'meta.org': id }, { session });
+        await NotificationsConf.deleteMany({ org: id }, { session });
 
         // Find all devices for organization
         orgDevices = await Devices.devices.find({ org: id },
           { machineId: 1, _id: 0 },
-          { session: session });
+          { session });
 
         // Get the account total device count
         deviceCount = await Devices.devices.countDocuments({ account: user.defaultAccount._id })
@@ -242,7 +242,7 @@ class OrganizationsService {
         ).session(session);
 
         // Delete all devices
-        await Devices.devices.deleteMany({ org: id }, { session: session });
+        await Devices.devices.deleteMany({ org: id }, { session });
         // Unregister a device (by removing the removed org number)
         await Flexibilling.registerDevice({
           account: user.defaultAccount._id,
@@ -632,7 +632,7 @@ class OrganizationsService {
       session = await mongoConns.getMainDB().startSession();
       await session.startTransaction();
       const orgBody = { ...organizationRequest, account: user.defaultAccount };
-      const _org = await Organizations.create([orgBody], { session: session });
+      const _org = await Organizations.create([orgBody], { session });
       const org = _org[0];
       const updUser = await Users.findOneAndUpdate(
         // Query, use the email
@@ -640,7 +640,7 @@ class OrganizationsService {
         // Update
         { defaultOrg: org._id },
         // Options
-        { upsert: false, new: true, session: session }
+        { upsert: false, new: true, session }
       );
 
       if (!updUser) throw new Error('Error updating default organization');
@@ -648,7 +648,7 @@ class OrganizationsService {
       const updAccount = await Accounts.findOneAndUpdate(
         { _id: updUser.defaultAccount },
         { $addToSet: { organizations: org._id } },
-        { upsert: false, new: true, session: session }
+        { upsert: false, new: true, session }
       );
 
       if (!updAccount) throw new Error('Error adding organization to account');
@@ -657,7 +657,7 @@ class OrganizationsService {
       const qosPolicy = await QosPolicies.create(
         [
           {
-            org: org,
+            org,
             name: 'Default QoS',
             description: 'Created automatically',
             outbound: {
@@ -691,7 +691,7 @@ class OrganizationsService {
           }
         ],
         {
-          session: session
+          session
         }
       );
       if (!qosPolicy) throw new Error('Error default QoS policy adding');
@@ -944,7 +944,7 @@ const addDeviceTasks = (obj, device, task) => {
 
   if (!(deviceId in obj)) {
     obj[deviceId] = {
-      device: device,
+      device,
       tasks: []
     };
   }

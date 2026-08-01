@@ -25,7 +25,7 @@ async function up () {
     for (const org of orgs) {
       // Create a default QoS policy
       await qosPoliciesModel.create([{
-        org: org,
+        org,
         name: 'Default QoS',
         description: 'Created automatically',
         outbound: {

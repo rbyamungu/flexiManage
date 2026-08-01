@@ -91,7 +91,7 @@ async function down () {
         {
           $set: {
             device: notification.targets.deviceId,
-            machineId: machineId
+            machineId
           },
           $unset: {
             count: '',

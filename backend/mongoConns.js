@@ -28,8 +28,8 @@ class MongoConns {
     this.mainDB = mongoose.createConnection(configs.get('mongoUrl'));
     this.mainDB.asPromise().then((db) => {
       logger.info('Connected to MongoDB mainDB');
-    }).catch((err) => { 
-      logger.error('Failed to connect to mainDB', { params: { err: err.message } }); 
+    }).catch((err) => {
+      logger.error('Failed to connect to mainDB', { params: { err: err.message } });
     });
 
     // analyticsDB Connection
@@ -109,7 +109,7 @@ class MongoConns {
   }
 }
 
-var mongoConns = null;
+let mongoConns = null;
 module.exports = function () {
   if (mongoConns) return mongoConns;
   else {

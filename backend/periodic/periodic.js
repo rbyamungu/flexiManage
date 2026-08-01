@@ -34,9 +34,9 @@ class Periodic {
 
   // Register task to periodic tasks
   registerTask (name, func, period) {
-    this.tasks[name] = { name: name, func: func, handle: null, period: period };
+    this.tasks[name] = { name, func, handle: null, period };
     logger.info('Registering periodic task', {
-      params: { name: name },
+      params: { name },
       periodic: { task: this.tasks[name] }
     });
   }
@@ -46,7 +46,7 @@ class Periodic {
     if (this.tasks[name]) {
       if (this.tasks[name].handle == null) {
         logger.info('Starting periodic task', {
-          params: { name: name },
+          params: { name },
           periodic: { task: this.tasks[name] }
         });
 
@@ -54,11 +54,11 @@ class Periodic {
         this.tasks[name].handle = timer;
       } else {
         logger.info('Trying to start an already running task',
-          { params: { name: name }, periodic: { task: this.tasks[name] } });
+          { params: { name }, periodic: { task: this.tasks[name] } });
       }
     } else {
       logger.warn('Task is not registered',
-        { params: { name: name }, periodic: { task: this.tasks[name] } });
+        { params: { name }, periodic: { task: this.tasks[name] } });
     }
   }
 
@@ -66,21 +66,21 @@ class Periodic {
     if (this.tasks[name]) {
       if (this.tasks[name].handle != null) {
         logger.info('Ending periodic task',
-          { params: { name: name }, periodic: { task: this.tasks[name] } });
+          { params: { name }, periodic: { task: this.tasks[name] } });
         clearInterval(this.tasks[name].handle);
         this.tasks[name].handle = null;
       } else {
         logger.info('Trying to end an already ended task',
-          { params: { name: name }, periodic: { task: this.tasks[name] } });
+          { params: { name }, periodic: { task: this.tasks[name] } });
       }
     } else {
       logger.warn('Task is not registered',
-        { params: { name: name }, periodic: { task: this.tasks[name] } });
+        { params: { name }, periodic: { task: this.tasks[name] } });
     }
   }
 }
 
-var periodic = null;
+let periodic = null;
 module.exports = function () {
   if (periodic) return periodic;
   else {

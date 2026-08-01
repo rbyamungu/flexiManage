@@ -68,7 +68,7 @@ const checkDeviceVersion = async (req, res, next) => {
         reason: err,
         machineId: req.body.machine_id
       },
-      req: req
+      req
     });
     const swUpdater = DevSwUpdater.getSwVerUpdaterInstance();
     const { versions } = await swUpdater.getLatestSwVersions();
@@ -128,7 +128,7 @@ function getCoordinates (interfaces, sourceIp) {
 // 500 - General Error
 connectRouter.route('/register')
   .post(cors.cors, checkDeviceVersion, (req, res, next) => {
-    var sourceIP = req.ip || 'Unknown';
+    let sourceIP = req.ip || 'Unknown';
     if (sourceIP.substr(0, 7) === '::ffff:') sourceIP = sourceIP.substr(7);
     jwt.verify(req.body.token, configs.get('deviceTokenSecretKey'), function (err, decoded) {
       if (err) {
@@ -165,9 +165,11 @@ connectRouter.route('/register')
               // Get an interface with gateway and the lowest metric
               const defaultIntf = interfaces.reduce((res, intf) =>
                 intf.gateway && (!res || +res.metric > +intf.metric)
-                  ? intf : res, undefined);
+                  ? intf
+                  : res, undefined);
               const lowestMetric = defaultIntf && defaultIntf.metric
-                ? defaultIntf.metric : '0';
+                ? defaultIntf.metric
+                : '0';
 
               let highestMetric = 0;
               const setAutoMetricIndexes = new Set();
@@ -183,7 +185,8 @@ connectRouter.route('/register')
                 intf.useStun = true;
                 intf.useFixedPublicPort = false;
                 intf.linkStatus = intf.link;
-                intf.internetAccess = intf.internetAccess === undefined ? ''
+                intf.internetAccess = intf.internetAccess === undefined
+                  ? ''
                   : intf.linkStatus !== 'down' && intf.internetAccess ? 'yes' : 'no';
                 intf.mtu = !isNaN(intf.mtu) ? +intf.mtu : 1500;
                 if (!defaultIntf && intf.name === req.body.default_dev) {
@@ -203,7 +206,8 @@ connectRouter.route('/register')
                     intf.metric = null;
                   } else {
                     intf.metric = (!intf.metric && intf.gateway === req.body.default_route)
-                      ? '0' : intf.metric || null;
+                      ? '0'
+                      : intf.metric || null;
                   }
                   intf.PublicIP = intf.public_ip || (intf.metric === lowestMetric ? sourceIP : '');
                   intf.PublicPort = intf.public_port || '';
@@ -265,12 +269,12 @@ connectRouter.route('/register')
                 })
                 .then(() => {
                   return devices.countDocuments({
-                    account: account, org: decoded.org
+                    account, org: decoded.org
                   }).session(session);
                 })
                 .then((orgCount) => {
                   keepOrgCount = orgCount;
-                  return devices.countDocuments({ account: account }).session(session);
+                  return devices.countDocuments({ account }).session(session);
                 })
                 .then(async (count) => {
                   keepCount = count;
@@ -294,18 +298,18 @@ connectRouter.route('/register')
                     machineId: req.body.machine_id,
                     serial: req.body.serial || '0',
                     fromToken: resp[0].name,
-                    interfaces: interfaces,
-                    deviceToken: deviceToken,
+                    interfaces,
+                    deviceToken,
                     isApproved: false,
                     isConnected: false,
                     coords: ll,
-                    cpuInfo: cpuInfo,
+                    cpuInfo,
                     distro: {
                       version: requestDistro?.version ?? '',
                       codename: requestDistro?.codename ?? ''
                     },
-                    versions: versions
-                  }], { session: session })
+                    versions
+                  }], { session })
                     .then(async (result) => {
                       await flexibilling.registerDevice({
                         account: result[0].account,
@@ -342,12 +346,12 @@ connectRouter.route('/register')
                             account: decoded.account,
                             org: decoded.org
                           },
-                          req: req
+                          req
                         });
                       res.statusCode = 200;
                       res.setHeader('Content-Type', 'application/json');
                       const server = getAgentBroker(decoded.server);
-                      res.json({ deviceToken: deviceToken, server: server });
+                      res.json({ deviceToken, server });
                     }, async (err) => {
                       // abort transaction on error
                       if (session) {
@@ -356,7 +360,7 @@ connectRouter.route('/register')
                       }
 
                       logger.warn('Device registration failed',
-                        { params: { deviceId: req.body.machine_id, err: err }, req: req });
+                        { params: { deviceId: req.body.machine_id, err }, req });
                       const fErr = formatErr(err, req.body);
                       return next(createError(fErr.status, fErr.error));
                     })
@@ -389,6 +393,6 @@ connectRouter.route('/register')
 
 // Default exports
 module.exports = {
-  connectRouter: connectRouter,
-  checkDeviceVersion: checkDeviceVersion
+  connectRouter,
+  checkDeviceVersion
 };

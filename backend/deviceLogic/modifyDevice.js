@@ -306,7 +306,7 @@ const prepareModificationMessages = (messageParams, device, newDevice) => {
         return {
           entity: 'agent',
           message: 'remove-route',
-          params: params
+          params
         };
       }));
     }
@@ -316,7 +316,7 @@ const prepareModificationMessages = (messageParams, device, newDevice) => {
         return {
           entity: 'agent',
           message: 'add-route',
-          params: params
+          params
         };
       }));
     }
@@ -420,13 +420,13 @@ const queueJob = async (org, username, tasks, device, jobResponse) => {
     username,
     org,
     // Data
-    { title: `Modify device ${device.hostname}`, tasks: tasks },
+    { title: `Modify device ${device.hostname}`, tasks },
     // Response data
     {
       method: 'modify',
       data: {
         device: device._id,
-        org: org,
+        org,
         user: username,
         origDevice: device,
         ...jobResponse
@@ -543,7 +543,7 @@ const queueModifyDeviceJob = async (
   try {
     const tunnels = await tunnelsModel
       .find({
-        org: org,
+        org,
         $or: [
           // check the first two reasons above
           {
@@ -629,9 +629,11 @@ const queueModifyDeviceJob = async (
         return ifc._id.toString() === tunnel.interfaceA.toString();
       });
 
-      const origIfcB = peer ? null : deviceB.interfaces.find(ifc => {
-        return ifc._id.toString() === tunnel.interfaceB.toString();
-      });
+      const origIfcB = peer
+        ? null
+        : deviceB.interfaces.find(ifc => {
+          return ifc._id.toString() === tunnel.interfaceB.toString();
+        });
 
       // For interface changes such as IP/mask we remove the tunnel
       // and readd it after the change has been applied on the device.
@@ -736,7 +738,7 @@ const queueModifyDeviceJob = async (
       const skipLocal = peer
         ? false
         : (
-          isObject(modifiedIfcA) &&
+            isObject(modifiedIfcA) &&
           modifiedIfcA.addr === `${origIfcA.IPv4}/${origIfcA.IPv4Mask}` &&
           isLocal(modifiedIfcA, origIfcB) &&
           isLocal(origIfcA, origIfcB)) ||
@@ -829,7 +831,7 @@ const _addTunnelTasks = (tasks, tunnel, tasksDeviceA, tasksDeviceB) => {
  */
 const setJobPendingInDB = (deviceID, org, flag) => {
   return devices.update(
-    { _id: deviceID, org: org },
+    { _id: deviceID, org },
     { $set: { pendingDevModification: flag } },
     { upsert: false }
   );
@@ -846,7 +848,7 @@ const setJobPendingInDB = (deviceID, org, flag) => {
  */
 const setTunnelsPendingInDB = (tunnelIDs, org, flag) => {
   return tunnelsModel.updateMany(
-    { _id: { $in: tunnelIDs }, org: org },
+    { _id: { $in: tunnelIDs }, org },
     { $set: { pendingTunnelModification: flag } },
     { upsert: false }
   );
@@ -1142,7 +1144,7 @@ const apply = async (device, user, data) => {
     .populate('policies.firewall.policy', '_id name rules')
     .populate('interfaces.qosPolicy')
     .populate('policies.qos.policy')
-    ;
+  ;
 
   data.sendAddTunnels ??= new Set();
   data.sendRemoveTunnels ??= new Set();
@@ -1532,7 +1534,7 @@ const apply = async (device, user, data) => {
  */
 const complete = async (jobId, res) => {
   if (!res) {
-    logger.warn('Got an invalid job result', { params: { res: res, jobId: jobId } });
+    logger.warn('Got an invalid job result', { params: { res, jobId } });
     return;
   }
   // Call 'complete' callbacks if needed
@@ -1718,7 +1720,7 @@ const sync = async (deviceId, orgId) => {
     deviceConfRequests.push({
       entity: 'agent',
       message: 'add-dhcp-config',
-      params: params
+      params
     });
   });
 
@@ -1738,7 +1740,7 @@ const sync = async (deviceId, orgId) => {
  */
 const error = async (jobId, res) => {
   logger.error('Modify device job failed', {
-    params: { result: res, jobId: jobId }
+    params: { result: res, jobId }
   });
 
   // Call 'error' callbacks if needed
@@ -1860,11 +1862,11 @@ const processModifyJob = async (tasks, device, orgId, user, ignoreTasks = [], jo
 };
 
 module.exports = {
-  apply: apply,
-  complete: complete,
-  completeSync: completeSync,
-  sync: sync,
-  error: error,
-  remove: remove,
-  processModifyJob: processModifyJob
+  apply,
+  complete,
+  completeSync,
+  sync,
+  error,
+  remove,
+  processModifyJob
 };

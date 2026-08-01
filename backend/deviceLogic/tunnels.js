@@ -92,7 +92,7 @@ const handleTunnels = async (
   const existingTunnels = await tunnelsModel.find(
     {
       isActive: true,
-      org: org,
+      org,
       pathlabel: pathLabels.length > 0 ? { $ne: null } : { $eq: null },
       $or: [
         { deviceA: { $in: devicesIds } },
@@ -149,7 +149,7 @@ const handleTunnels = async (
       const [verA, verB] = [deviceA.versions.router, deviceB.versions.router];
       if (!routerVersionsCompatible(verA, verB)) {
         logger.warn('Tunnel creation failed', {
-          params: { reason: 'Router version mismatch', versions: { verA: verA, verB: verB } }
+          params: { reason: 'Router version mismatch', versions: { verA, verB } }
         });
         reasons.add('Router version mismatch for some devices.');
         continue;
@@ -334,12 +334,12 @@ const handlePeers = async (
   const tasks = [];
 
   // get peers configurations
-  const peers = await peersModel.find({ _id: { $in: peersIds }, org: org }).lean();
+  const peers = await peersModel.find({ _id: { $in: peersIds }, org }).lean();
 
   const existingPeers = await tunnelsModel.find(
     {
       isActive: true,
-      org: org,
+      org,
       peer: { $in: peersIds }
     },
     {
@@ -414,7 +414,7 @@ const handlePeers = async (
           // each peer can be installed once in a device.
           const devicePeerKey = getDevicePeerKey(device._id, peer._id);
           if (devicePeerKey in existingDevicePeersMap) {
-            logger.debug('Found same peer in the device', { params: { peer: peer } });
+            logger.debug('Found same peer in the device', { params: { peer } });
             reasons.add(`A peer tunnel with the selected profile (${peer.name}) \
             already exists in the selected devices (${device.name}). `);
             continue;
@@ -464,7 +464,7 @@ const handlePeers = async (
             // each peer can be installed once in a device.
             const devicePeerKey = getDevicePeerKey(device._id, peer._id);
             if (devicePeerKey in existingDevicePeersMap) {
-              logger.debug('Found same peer in the device', { params: { peer: peer } });
+              logger.debug('Found same peer in the device', { params: { peer } });
               reasons.add(`A peer tunnel with the selected profile (${peer.name}) \
               already exists in the selected device (${device.name}). `);
               continue;
@@ -560,7 +560,7 @@ const applyTunnelAdd = async (devices, user, data) => {
   });
   devices = await Promise.all(devices.map(d => d
     .populate('interfaces.pathlabels', '_id name type')
-    
+
   ));
 
   // Get details for devices to connect
@@ -569,7 +569,8 @@ const applyTunnelAdd = async (devices, user, data) => {
       const inSelected = selectedDevices.hasOwnProperty(device._id);
       if (inSelected) return true;
       else return false;
-    }) : [];
+    })
+    : [];
 
   const isPeer = data.meta.tunnelType === 'peer';
   if (isPeer &&
@@ -647,18 +648,18 @@ const applyTunnelAdd = async (devices, user, data) => {
   }
 
   if (topology !== 'hubAndSpoke' && topology !== 'fullMesh') {
-    logger.error('Unknown topology when creating tunnels', { params: { topology: topology } });
+    logger.error('Unknown topology when creating tunnels', { params: { topology } });
     throw new Error('Unknown topology when creating tunnels');
   }
   let hubIdx = -1;
   if (topology === 'hubAndSpoke') {
     if (!hub || hub === '') {
-      logger.error('Hub must be specified for hub and spoke topology', { params: { hub: hub } });
+      logger.error('Hub must be specified for hub and spoke topology', { params: { hub } });
       throw new Error('Hub must be specified for hub and spoke topology');
     }
     hubIdx = opDevices.findIndex((d) => d._id.toString() === hub);
     if (hubIdx === -1) {
-      logger.error('Hub device not found', { params: { hub: hub } });
+      logger.error('Hub device not found', { params: { hub } });
       throw new Error('Hub device not found');
     }
   }
@@ -728,7 +729,8 @@ const applyTunnelAdd = async (devices, user, data) => {
   }, []);
 
   const status = fulfilled.length < dbTasks.length
-    ? 'partially completed' : 'completed';
+    ? 'partially completed'
+    : 'completed';
 
   const desired = dbTasks.flat().map(job => job.id);
   const ids = fulfilled.flat().map(job => job.id);
@@ -755,7 +757,7 @@ const applyTunnelAdd = async (devices, user, data) => {
  */
 const completeTunnelAdd = (jobId, res) => {
   if (!res || !res.tunnelId || !res.target || !res.username || !res.org) {
-    logger.warn('Got an invalid job result', { params: { result: res, jobId: jobId } });
+    logger.warn('Got an invalid job result', { params: { result: res, jobId } });
     return;
   }
 
@@ -763,7 +765,7 @@ const completeTunnelAdd = (jobId, res) => {
     res.tunnelId, res.target, true)(null, (err, res) => {
     if (err) {
       logger.error('Update tunnel connectivity failed', {
-        params: { jobId: jobId, reason: err.message }
+        params: { jobId, reason: err.message }
       });
     }
   }
@@ -795,9 +797,9 @@ const completeSync = async (jobId, jobsData) => {
  */
 const errorTunnelAdd = async (jobId, res) => {
   logger.info('Tunnel add error.',
-    { params: { result: res, jobId: jobId } });
+    { params: { result: res, jobId } });
   if (!res || !res.deviceA || !res.deviceB || !res.target || !res.username || !res.org) {
-    logger.warn('Got an invalid job result', { params: { result: res, jobId: jobId } });
+    logger.warn('Got an invalid job result', { params: { result: res, jobId } });
   }
 };
 
@@ -827,7 +829,7 @@ const generateTunnelPromise = async (user, org, pathLabel, deviceA, deviceB,
         interfaceB: peer ? null : deviceBIntf.name
       },
       label: pathLabel,
-      encryptionMethod: encryptionMethod,
+      encryptionMethod,
       peer,
       notificationsSettings
     }
@@ -839,7 +841,7 @@ const generateTunnelPromise = async (user, org, pathLabel, deviceA, deviceB,
     // Search first in deleted tunnels
     const tunnelResp = await tunnelsModel.findOneAndUpdate(
       // Query
-      { isActive: false, org: org },
+      { isActive: false, org },
       // Update, make sure other query doesn't find the same number
       { isActive: true },
       // Options
@@ -853,7 +855,7 @@ const generateTunnelPromise = async (user, org, pathLabel, deviceA, deviceB,
         const idResp = await tunnelIDsModel.findOneAndUpdate(
           // Query, allow only MAX_TUNNELS_PER_ORG tunnels per organization
           {
-            org: org,
+            org,
             nextAvailID: { $gte: 0, $lt: MAX_TUNNELS_PER_ORG }
           },
           // Update
@@ -878,7 +880,7 @@ const generateTunnelPromise = async (user, org, pathLabel, deviceA, deviceB,
           const idResp = tunnelIDsModel.findOneAndUpdate(
             // Query, allow only MAX_TUNNELS_PER_ORG tunnels per organization
             {
-              org: org,
+              org,
               nextAvailID: { $gte: 0, $lt: MAX_TUNNELS_PER_ORG }
             },
             // Update
@@ -909,7 +911,7 @@ const generateTunnelPromise = async (user, org, pathLabel, deviceA, deviceB,
     if (tunnelnum !== null && !err.message.includes('pending')) {
       try {
         await tunnelsModel.findOneAndUpdate(
-          { num: tunnelnum, isActive: true, org: org },
+          { num: tunnelnum, isActive: true, org },
           { isActive: false },
           { upsert: false }
         );
@@ -967,7 +969,7 @@ const queueTunnel = async (
       orgId,
       // Data
       {
-        title: title,
+        title,
         tasks: tasksDeviceA
       },
       // Response data
@@ -976,7 +978,7 @@ const queueTunnel = async (
         data: {
           username: user,
           org: orgId,
-          tunnelId: tunnelId,
+          tunnelId,
           deviceA: devAOid,
           deviceB: devBOid,
           pathlabel: pathLabel,
@@ -991,7 +993,7 @@ const queueTunnel = async (
     );
 
     logger.info(`${isAdd ? 'Add' : 'Del'} tunnel job queued - deviceA`, {
-      params: { devices: devices },
+      params: { devices },
       job: jobA
     });
 
@@ -1001,7 +1003,7 @@ const queueTunnel = async (
       orgId,
       // Data
       {
-        title: title,
+        title,
         tasks: tasksDeviceB
       },
       // Response data
@@ -1010,7 +1012,7 @@ const queueTunnel = async (
         data: {
           username: user,
           org: orgId,
-          tunnelId: tunnelId,
+          tunnelId,
           deviceA: devAOid,
           deviceB: devBOid,
           pathlabel: pathLabel,
@@ -1024,7 +1026,7 @@ const queueTunnel = async (
     );
 
     logger.info(`${isAdd ? 'Add' : 'Del'} tunnel job queued - deviceB`, {
-      params: { devices: devices },
+      params: { devices },
       job: jobB
     });
 
@@ -1191,9 +1193,9 @@ const prepareTunnelAddJob = async (
       paramsDeviceA.ikev2 = {
         role: 'initiator',
         'remote-device-id': deviceB.machineId,
-        lifetime: lifetime, // phase 2
+        lifetime, // phase 2
         ike_lifetime: ikeLifetime, // phase 1
-        pfs: pfs,
+        pfs,
         ike: {
           'crypto-alg': 'aes-cbc',
           'integ-alg': 'hmac-sha2-256-128',
@@ -1387,7 +1389,7 @@ const addTunnel = async (
   const tunnel = await tunnelsModel.findOneAndUpdate(
     // Query, use the org and tunnel number
     {
-      org: org,
+      org,
       num: tunnelnum
     },
     // Update
@@ -1400,15 +1402,15 @@ const addTunnel = async (
       deviceB: peer ? null : deviceB._id,
       interfaceB: peer ? null : deviceBIntf._id,
       pathlabel: pathLabel,
-      isPending: isPending,
-      pendingType: pendingType,
+      isPending,
+      pendingType,
       pendingTime: isPending ? new Date() : '',
-      pendingReason: pendingReason,
+      pendingReason,
       encryptionMethod,
       tunnelKeys,
       advancedOptions: { mtu, mssClamp, ospfCost, ospfArea, routing },
       peer: peer ? peer._id : null,
-      notificationsSettings: notificationsSettings
+      notificationsSettings
     },
     // Options
     { upsert: true, new: true }
@@ -1420,7 +1422,7 @@ const addTunnel = async (
 
   if (!tunnel.deviceA || (!tunnel.peer && !tunnel.deviceB)) {
     await tunnelsModel.findOneAndUpdate({
-      org: org, num: tunnelnum
+      org, num: tunnelnum
     }, {
       isActive: false,
       deviceAconf: false,
@@ -1457,18 +1459,18 @@ const updateTunnelIsConnected = (
   isAdd
 ) => (inp, callback) => {
   const params = {
-    org: org,
-    target: target,
-    isAdd: isAdd
+    org,
+    target,
+    isAdd
   };
-  logger.info('Updating tunnels connectivity', { params: params });
+  logger.info('Updating tunnels connectivity', { params });
   const update = {};
   update[target] = isAdd;
 
   tunnelsModel
     .findOneAndUpdate(
       // Query
-      { num: tunnelId, org: org },
+      { num: tunnelId, org },
       // Update
       update,
       // Options
@@ -1611,7 +1613,8 @@ const applyTunnelDel = async (devices, user, data) => {
       return { fulfilled, reasons };
     }, { fulfilled: [], reasons: [] });
     const status = fulfilled.length < tunnelsArray.length
-      ? 'partially completed' : 'completed';
+      ? 'partially completed'
+      : 'completed';
 
     const desired = delPromises.flat().map(job => job.id);
     const ids = fulfilled.flat().map(job => job.id);
@@ -1803,9 +1806,9 @@ const getTunnelConfigDependenciesTasks = async (tunnel, isAdd) => {
         via: gateway,
         dev_id: ifname || undefined,
         metric: metric ? parseInt(metric, 10) : undefined,
-        redistributeViaOSPF: redistributeViaOSPF,
-        redistributeViaBGP: redistributeViaBGP,
-        onLink: onLink
+        redistributeViaOSPF,
+        redistributeViaBGP,
+        onLink
       };
 
       deviceTasksArray.push({
@@ -1878,7 +1881,8 @@ const sync = async (deviceId, org) => {
       // Tunnel keys will be generated in prepareTunnelAddJob.
       // Need to sync another side as well.
       const remoteDeviceId = deviceId.toString() === deviceA._id.toString()
-        ? deviceB._id : deviceA._id;
+        ? deviceB._id
+        : deviceA._id;
       logger.warn('No tunnel keys', { params: { tunnelId: _id, deviceId: remoteDeviceId } });
       if (!devicesToSync.includes(remoteDeviceId)) {
         devicesToSync.push(remoteDeviceId);
@@ -2075,7 +2079,7 @@ const prepareTunnelParams = (
     paramsDeviceA['loopback-iface'] = {
       addr: tunnelParams.ip1 + '/31',
       mac: tunnelParams.mac1,
-      mtu: mtu,
+      mtu,
       routing: routing || 'ospf',
       multilink: {
         labels: pathLabel ? [pathLabel] : []
@@ -2090,7 +2094,7 @@ const prepareTunnelParams = (
     paramsDeviceB['loopback-iface'] = {
       addr: tunnelParams.ip2 + '/31',
       mac: tunnelParams.mac2,
-      mtu: mtu,
+      mtu,
       routing: routing || 'ospf',
       multilink: {
         labels: pathLabel ? [pathLabel] : []
@@ -2158,9 +2162,11 @@ const sendRemoveTunnelsJobs = async (
     const ifcA = tunnel.interfaceADetails ?? deviceA.interfaces.find(ifc => {
       return ifc._id.toString() === interfaceA.toString();
     });
-    const ifcB = peer ? null : tunnel.interfaceBDetails ?? deviceB.interfaces.find(ifc => {
-      return ifc._id.toString() === interfaceB.toString();
-    });
+    const ifcB = peer
+      ? null
+      : tunnel.interfaceBDetails ?? deviceB.interfaces.find(ifc => {
+        return ifc._id.toString() === interfaceB.toString();
+      });
 
     let [tasksDeviceA, tasksDeviceB] = await prepareTunnelRemoveJob(
       tunnel,
@@ -2367,7 +2373,7 @@ const getInterfacesWithPathLabels = device => {
         return label.type !== 'DIA' ? label._id.toString() : null;
       }));
       deviceIntfs.push({
-        labelsSet: labelsSet,
+        labelsSet,
         ...intf.toObject()
       });
     }
@@ -2433,21 +2439,21 @@ const getTunnelConfigDependencies = async (tunnel, isPending) => {
 
 module.exports = {
   apply: {
-    applyTunnelAdd: applyTunnelAdd,
-    applyTunnelDel: applyTunnelDel
+    applyTunnelAdd,
+    applyTunnelDel
   },
   complete: {
-    completeTunnelAdd: completeTunnelAdd,
-    completeTunnelDel: completeTunnelDel
+    completeTunnelAdd,
+    completeTunnelDel
   },
   error: {
-    errorTunnelAdd: errorTunnelAdd
+    errorTunnelAdd
   },
-  sync: sync,
-  completeSync: completeSync,
-  sendRemoveTunnelsJobs: sendRemoveTunnelsJobs,
-  prepareTunnelAddJob: prepareTunnelAddJob,
-  prepareTunnelRemoveJob: prepareTunnelRemoveJob,
-  sendAddTunnelsJobs: sendAddTunnelsJobs,
-  getTunnelConfigDependencies: getTunnelConfigDependencies
+  sync,
+  completeSync,
+  sendRemoveTunnelsJobs,
+  prepareTunnelAddJob,
+  prepareTunnelRemoveJob,
+  sendAddTunnelsJobs,
+  getTunnelConfigDependencies
 };

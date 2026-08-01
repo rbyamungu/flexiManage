@@ -420,7 +420,7 @@ class Connections {
       info.req.headers['x-forwarded-for'] || info.req.connection.remoteAddress;
     logger.info('Device connection opened', {
       params: {
-        ip: ip,
+        ip,
         deviceId: connectionURL ? connectionURL.pathname : '',
         headers: info.req.headers
       }
@@ -455,7 +455,7 @@ class Connections {
     const { valid, err } = verifyAgentVersion(agentVersion);
     if (!valid) {
       logger.warn('Agent version verification failed', {
-        params: { deviceId: connectionURL.pathname, err: err }
+        params: { deviceId: connectionURL.pathname, err }
       });
       return done(false, 400);
     }
@@ -464,7 +464,7 @@ class Connections {
 
     devices
       .find({
-        machineId: machineId,
+        machineId,
         deviceToken: connectionURL.searchParams.get('token')
       })
       .then(
@@ -482,7 +482,7 @@ class Connections {
               const devInfo = this.devices.getDeviceInfo(machineId);
               if (devInfo && devInfo.ready === true && devInfo.socket) {
                 logger.info('Closing device old connection', {
-                  params: { machineId: machineId }
+                  params: { machineId }
                 });
                 devInfo.socket.removeAllListeners('close');
                 devInfo.socket.terminate();
@@ -611,7 +611,7 @@ class Connections {
       const { org, name, deviceObj } = deviceInfo;
       await notificationsMgr.sendNotifications([
         {
-          org: org,
+          org,
           title: '[resolved] Device connection',
           details: `Device ${name} reconnected to management`,
           eventType: 'Device connection',
@@ -720,7 +720,7 @@ class Connections {
             logger.warn('Missing interface configuration in the get-device-info message', {
               params: {
                 reconfig: deviceInfo.message.reconfig,
-                machineId: machineId,
+                machineId,
                 interface: i.toJSON()
               }
             });
@@ -737,7 +737,7 @@ class Connections {
             logger.info(`Link status changed to ${updatedConfig.link} in device ${name}`,
               { params: { interface: i } });
             await notificationsMgr.sendNotifications([{
-              org: org,
+              org,
               title: resolved ? '[resolved] Link status change' : 'Link status change',
               details: `Link ${i.name} ${i.IPv4} is ${linkStatus} in device ${name}`,
               eventType: 'Link status',
@@ -753,11 +753,14 @@ class Connections {
           const updInterface = {
             ...i.toJSON(),
             PublicIP: updatedConfig.public_ip && i.useStun
-              ? updatedConfig.public_ip : i.PublicIP,
+              ? updatedConfig.public_ip
+              : i.PublicIP,
             PublicPort: updatedConfig.public_port && i.useStun
-              ? updatedConfig.public_port : i.PublicPort,
+              ? updatedConfig.public_port
+              : i.PublicPort,
             NatType: updatedConfig.nat_type || i.NatType,
-            internetAccess: updatedConfig.internetAccess === undefined ? ''
+            internetAccess: updatedConfig.internetAccess === undefined
+              ? ''
               : updatedConfig.link !== 'down' && updatedConfig.internetAccess ? 'yes' : 'no',
             linkStatus: updatedConfig.link,
             hasIpOnDevice: updatedConfig.IPv4 !== ''
@@ -1014,7 +1017,7 @@ class Connections {
         validateDevInfoMessage
       );
 
-      logger.debug('Device info message sent', { params: { deviceId: deviceId } });
+      logger.debug('Device info message sent', { params: { deviceId } });
       if (!deviceInfo.ok) {
         throw new Error(`device reply: ${deviceInfo.message}`);
       }
@@ -1110,7 +1113,7 @@ class Connections {
             }
             if (job.state === 'complete' && jobToUpdate._state === 'failed') {
               logger.info('Updating job result received from device', {
-                params: { deviceId: deviceId, job_id: job.job_id, state: job.state }
+                params: { deviceId, job_id: job.job_id, state: job.state }
               });
               jobToUpdate.complete();
               jobToUpdate.error('');
@@ -1119,7 +1122,7 @@ class Connections {
             }
             if (job?.errors?.length > 0) {
               logger.info('Updating job result received from device', {
-                params: { deviceId: deviceId, job_id: job.job_id, state: job.state }
+                params: { deviceId, job_id: job.job_id, state: job.state }
               });
               jobToUpdate.error(JSON.stringify({ errors: job.errors }));
               // unlike the jobs which got marked as failed due to the send timeout, in the case
@@ -1139,7 +1142,7 @@ class Connections {
       this.reconfigCheck(origDevice, deviceInfo);
 
       logger.info('Device info message response received', {
-        params: { deviceId: deviceId, message: deviceInfo }
+        params: { deviceId, message: deviceInfo }
       });
 
       if (isNewConnection) {
@@ -1184,7 +1187,7 @@ class Connections {
         const { org, deviceObj, name } = deviceInfo;
         await notificationsMgr.sendNotifications([
           {
-            org: org,
+            org,
             title: 'Device disconnection',
             details: `Device ${name} disconnected from management`,
             eventType: 'Device connection',
@@ -1351,7 +1354,7 @@ class Connections {
         msgQ[key] = {
           resolver: resolve,
           rejecter: reject,
-          tohandle: tohandle,
+          tohandle,
           validator: responseValidator
         };
 
@@ -1389,7 +1392,7 @@ class Connections {
   }
 }
 
-var connections = null;
+let connections = null;
 module.exports = function () {
   if (connections) return connections;
   else {

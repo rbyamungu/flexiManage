@@ -42,7 +42,7 @@ const hostname = os.hostname();
 
 const createEnvEntry = () => {
   return {
-    hostname: hostname
+    hostname
   };
 };
 
@@ -112,6 +112,6 @@ const reqLogger = expressWinston.logger(loggerOptions);
 const errLogger = expressWinston.errorLogger(errLoggerOptions);
 
 module.exports = {
-  reqLogger: reqLogger,
-  errLogger: errLogger
+  reqLogger,
+  errLogger
 };

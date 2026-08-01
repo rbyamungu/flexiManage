@@ -111,7 +111,7 @@ class DeviceQueues {
     this.queue = kue.createQueue({ prefix, redis });
     this.queue.watchStuckJobs(10000);
     this.queue.on('error', (err) => {
-      logger.error('DeviceQueues error', { params: { redisConn: redis, err: err } });
+      logger.error('DeviceQueues error', { params: { redisConn: redis, err } });
     });
     this.deviceQueues = {};
   }
@@ -156,8 +156,8 @@ class DeviceQueues {
         if (!resolved) return;
       } catch (err) {
         logger.debug('Failed to process job', {
-          params: { job: job, deviceId: deviceId, err: err.message },
-          job: job
+          params: { job, deviceId, err: err.message },
+          job
         });
         if (!job.data.ignoreFailure) {
           return done(err, false);
@@ -188,7 +188,7 @@ class DeviceQueues {
         { priority: 'critical', attempts: 1, init: true, removeOnComplete: true });
     } catch (err) {
       logger.warn('Failed to start device queue',
-        { params: { deviceId: deviceId, err: err.message } });
+        { params: { deviceId, err: err.message } });
     }
   }
 
@@ -232,7 +232,7 @@ class DeviceQueues {
         target: deviceId,
         username: (username) || 'unknown',
         org: (org) || 'unknown',
-        init: init,
+        init,
         jobUpdated: false
       };
 
@@ -290,7 +290,7 @@ class DeviceQueues {
      */
   pauseQueue (deviceId) {
     logger.debug('Pausing queue request',
-      { params: { deviceId: deviceId, queue: this.deviceQueues[deviceId] } });
+      { params: { deviceId, queue: this.deviceQueues[deviceId] } });
     return new Promise((resolve, reject) => {
       if (!this.deviceQueues[deviceId]) {
         return reject(
@@ -299,7 +299,7 @@ class DeviceQueues {
       }
       if (this.deviceQueues[deviceId].paused) {
         logger.debug('Queue already paused, succeeded',
-          { params: { deviceId: deviceId, queue: this.deviceQueues[deviceId] } });
+          { params: { deviceId, queue: this.deviceQueues[deviceId] } });
         return resolve(); // Already paused
       }
       if (!this.deviceQueues[deviceId].context) {
@@ -321,7 +321,7 @@ class DeviceQueues {
               return reject(err);
             };
             logger.debug('Queue paused, succeeded',
-              { params: { deviceId: deviceId }, queue: this.deviceQueues[deviceId] });
+              { params: { deviceId }, queue: this.deviceQueues[deviceId] });
           });
           this.deviceQueues[deviceId].paused = true;
           this.deviceQueues[deviceId].waitPause = false;
@@ -349,7 +349,7 @@ class DeviceQueues {
      */
   resumeQueue (deviceId) {
     logger.debug('Resuming device queue',
-      { params: { deviceId: deviceId }, queue: this.deviceQueues[deviceId] });
+      { params: { deviceId }, queue: this.deviceQueues[deviceId] });
     if (!this.deviceQueues[deviceId]) {
       throw new Error('DeviceQueues: Trying to resume an undefined queue, deviceID=' + deviceId);
     }
@@ -378,7 +378,7 @@ class DeviceQueues {
       };
       this.deviceQueues[deviceId].context.resume();
       logger.debug('Queue restarted',
-        { params: { deviceId: deviceId }, queue: this.deviceQueues[deviceId] });
+        { params: { deviceId }, queue: this.deviceQueues[deviceId] });
     });
   }
 
@@ -604,7 +604,7 @@ class DeviceQueues {
       });
     } catch (err) {
       logger.warn('Encountered an error while removing jobs', {
-        params: { org: org, jobIDs: jobIDs, err: err.message }
+        params: { org, jobIDs, err: err.message }
       });
       throw err;
     }
@@ -628,7 +628,7 @@ class DeviceQueues {
       }, 0, -1, 'asc', 0, -1, filters, isDelete, devicesByMachineId);
     } catch (err) {
       logger.warn('Encountered an error while removing jobs', {
-        params: { org: org, filters: filters, err: err.message }
+        params: { org, filters, err: err.message }
       });
       throw err;
     }
@@ -720,7 +720,7 @@ class DeviceQueues {
       });
     } catch (err) {
       logger.warn('Encountered an error while removing old jobs', {
-        params: { state: state, createdBefore: createdBefore, err: err.message }
+        params: { state, createdBefore, err: err.message }
       });
       throw err;
     }
@@ -746,7 +746,7 @@ class DeviceQueues {
       });
     } catch (err) {
       logger.warn('Encountered an error while setting failure for old jobs', {
-        params: { state: state, createdBefore: createdBefore, err: err.message }
+        params: { state, createdBefore, err: err.message }
       });
       throw err;
     }

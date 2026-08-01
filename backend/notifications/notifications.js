@@ -178,7 +178,7 @@ class NotificationsManager {
   async getDefaultNotificationsSettings (account) {
     let response;
     if (account) {
-      response = await notificationsConf.find({ account: account }, { rules: 1, _id: 0 }).lean();
+      response = await notificationsConf.find({ account }, { rules: 1, _id: 0 }).lean();
       if (response.length > 0) {
         const sortedRules = Object.fromEntries(
           Object.entries(response[0].rules).sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
@@ -254,7 +254,9 @@ class NotificationsManager {
     const urlSchema = new URL(uiServerUrl[0]);
     const urlToDisplay = `${urlSchema.protocol}//${urlSchema.hostname}/notifications`;
 
-    const notificationsPageInfo = uiServerUrl.length > 1 ? '' : `<p><b>Notifications page:</b>
+    const notificationsPageInfo = uiServerUrl.length > 1
+      ? ''
+      : `<p><b>Notifications page:</b>
       <a href="${uiServerUrl[0]}/notifications">${urlToDisplay}</a></p>`;
     const orgWithAccount = await this.getOrgWithAccount(orgId);
     const orgInfo = `<p><b>Organization:</b> ${orgWithAccount[0].name}</p>`;
@@ -273,7 +275,8 @@ class NotificationsManager {
   async sendEmailNotification (title, orgNotificationsConf, severity, alertDetails) {
     try {
       const uiServerUrl = configs.get('uiServerUrl', 'list');
-      const userIds = severity === 'warning' ? orgNotificationsConf.signedToWarning
+      const userIds = severity === 'warning'
+        ? orgNotificationsConf.signedToWarning
         : orgNotificationsConf.signedToCritical;
       const emailAddresses = await this.getUsersEmail(userIds);
       if (emailAddresses.length === 0) return null;
@@ -281,7 +284,8 @@ class NotificationsManager {
       const { notificationsPageInfo, orgInfo, accountInfo } = await this.getInfoForEmail(
         orgNotificationsConf.org);
 
-      const notificationLink = uiServerUrl.length > 1 ? ' Notifications '
+      const notificationLink = uiServerUrl.length > 1
+        ? ' Notifications '
         : `<a href="${uiServerUrl[0]}/notifications-config">Notifications settings</a>`;
 
       const emailBody = `
@@ -398,7 +402,7 @@ class NotificationsManager {
       return { exists: false };
     } catch (err) {
       logger.warn(`Failed to search for notification ${eventType} in database`, {
-        params: { notifications: notifications, err: err.message }
+        params: { notifications, err: err.message }
       });
       return false;
     }
@@ -449,7 +453,7 @@ class NotificationsManager {
         { params: { idOfResolvedNotification: updatedAlert._id } });
     } catch (err) {
       logger.error(`Failed to resolve the notification ${eventType} in database`, {
-        params: { notifications: notifications, err: err.message }
+        params: { notifications, err: err.message }
       });
     }
   }
@@ -512,7 +516,7 @@ class NotificationsManager {
         } = notification;
         let orgNotificationsConf = orgNotificationsMap.get(org);
         if (!orgNotificationsConf) {
-          orgNotificationsConf = await notificationsConf.findOne({ org: org }).lean();
+          orgNotificationsConf = await notificationsConf.findOne({ org }).lean();
           orgNotificationsMap.set(org, orgNotificationsConf);
         }
 
@@ -657,8 +661,8 @@ class NotificationsManager {
             // Check if there is already an event like this for the same device(for device alerts)
             const emailSentForPreviousAlert = !targets.deviceId ? null
               : await notificationsDb.findOne({
-                eventType: eventType,
-                title: title, // ensures that we will send email for resolved alerts,
+                eventType,
+                title, // ensures that we will send email for resolved alerts,
                 'targets.deviceId': targets.deviceId,
                 'targets.tunnelId': null,
                 'targets.interfaceId': null,
@@ -679,7 +683,7 @@ class NotificationsManager {
                 // Increment the rate limit count if not sending an email
                 await notificationsDb.findOneAndUpdate(
                   {
-                    eventType: eventType,
+                    eventType,
                     'targets.deviceId': targets.deviceId,
                     'targets.tunnelId': null,
                     'targets.interfaceId': null,
@@ -762,7 +766,7 @@ class NotificationsManager {
       }
     } catch (err) {
       logger.error('Failed to store notifications in database', {
-        params: { notifications: notifications, err: err.message }
+        params: { notifications, err: err.message }
       });
     }
   }
@@ -853,7 +857,7 @@ class NotificationsManager {
         );
 
         logger.info('A daily notifications summary email has been sent', {
-          params: { emailAddresses: emailAddresses }
+          params: { emailAddresses }
         });
       } catch (err) {
         logger.warn('Failed to notify users about pending notifications', {

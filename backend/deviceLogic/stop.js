@@ -52,13 +52,13 @@ const apply = async (devices, user, data) => {
       username,
       org,
       // Data
-      { title: 'Stop device ' + hostname, tasks: tasks },
+      { title: 'Stop device ' + hostname, tasks },
       // Response data
       {
         method: 'stop',
         data: {
           device: _id,
-          org: org
+          org
         }
       },
       // Metadata
@@ -86,7 +86,8 @@ const apply = async (devices, user, data) => {
     return { fulfilled, reasons };
   }, { fulfilled: [], reasons: [] });
   const status = fulfilled.length < devices.length
-    ? 'partially completed' : 'completed';
+    ? 'partially completed'
+    : 'completed';
   const message = fulfilled.length < devices.length
     ? `Warning: ${fulfilled.length} of ${devices.length} stop device jobs added.` +
       `Some devices have following errors: ${reasons.join('. ')}`
@@ -103,7 +104,7 @@ const apply = async (devices, user, data) => {
  */
 const complete = (jobId, res) => {
   if (!res || !res.device || !res.org) {
-    logger.warn('Got an invalid job result', { params: { result: res, jobId: jobId } });
+    logger.warn('Got an invalid job result', { params: { result: res, jobId } });
     return;
   }
   // Get all device tunnels and mark them as not connected.
@@ -127,24 +128,24 @@ const complete = (jobId, res) => {
         // Options
         { upsert: false })
       .then((resp) => {
-        logger.debug('Updated tunnels info in db', { params: { jobId: jobId, response: resp } });
+        logger.debug('Updated tunnels info in db', { params: { jobId, response: resp } });
         if (resp != null) {
           logger.info('Updated device tunnels status to not-connected', {
-            params: { jobId: jobId, device: res.device }
+            params: { jobId, device: res.device }
           });
         } else {
           throw new Error('Update tunnel connected status failure');
         }
       }, (err) => {
-        logger.error('Stop device callback failed', { params: { jobId: jobId, err: err.message } });
+        logger.error('Stop device callback failed', { params: { jobId, err: err.message } });
       })
       .catch((err) => {
-        logger.error('Stop device callback failed', { params: { jobId: jobId, err: err.message } });
+        logger.error('Stop device callback failed', { params: { jobId, err: err.message } });
       });
   }
 };
 
 module.exports = {
-  apply: apply,
-  complete: complete
+  apply,
+  complete
 };

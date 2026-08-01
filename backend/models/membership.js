@@ -357,12 +357,12 @@ const validatePermissionCombination = (role, permissionTo) => {
 
 // Default exports
 module.exports = {
-  membership: membership,
-  permissionMasks: permissionMasks,
-  permissionShifts: permissionShifts,
+  membership,
+  permissionMasks,
+  permissionShifts,
   permissionsSchema: Permissions,
-  setPermission: setPermission,
-  preDefinedPermissions: preDefinedPermissions,
-  getUserPermissions: getUserPermissions,
-  validatePermissionCombination: validatePermissionCombination
+  setPermission,
+  preDefinedPermissions,
+  getUserPermissions,
+  validatePermissionCombination
 };

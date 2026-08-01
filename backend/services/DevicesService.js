@@ -314,7 +314,8 @@ class DevicesService {
         ]);
         retRule._id = retRule._id.toString();
         return retRule;
-      }) : [];
+      })
+      : [];
 
     // "org" can be "populated" or by aggregation "lookup".
     // The lookup doesn't return "mongoose.Document" so there is no toObject() method in prototype.
@@ -333,7 +334,8 @@ class DevicesService {
     retDevice.upgradeSchedule = pick(item.upgradeSchedule, ['jobQueued', '_id', 'time']);
     retDevice.upgradeSchedule._id = retDevice.upgradeSchedule._id.toString();
     retDevice.upgradeSchedule.time = (retDevice.upgradeSchedule.time)
-      ? retDevice.upgradeSchedule.time.toISOString() : null;
+      ? retDevice.upgradeSchedule.time.toISOString()
+      : null;
     retDevice.versions = pick(item.versions, ['agent', 'router', 'device', 'vpp', 'frr']);
     retDevice.interfaces = retInterfaces;
     retDevice.staticroutes = retStaticRoutes;
@@ -344,7 +346,8 @@ class DevicesService {
     };
     // Add interface stats to mongoose response
     retDevice.deviceStatus = retDevice.isConnected
-      ? deviceStatus.getDeviceStatus(retDevice.machineId) || {} : {};
+      ? deviceStatus.getDeviceStatus(retDevice.machineId) || {}
+      : {};
     return retDevice;
   }
 
@@ -378,66 +381,68 @@ class DevicesService {
             org: { $in: orgList.map(o => mongoose.Types.ObjectId(o)) }
           }
         },
-        ...hasFilters ? ([
-          {
-            $lookup: {
-              from: 'multilinkpolicies',
-              localField: 'policies.multilink.policy',
-              foreignField: '_id',
-              as: 'policies.multilink.policy'
-            }
-          },
-          {
-            $unwind: {
-              path: '$policies.multilink.policy',
-              preserveNullAndEmptyArrays: true
-            }
-          },
-          {
-            $lookup: {
-              from: 'firewallpolicies',
-              localField: 'policies.firewall.policy',
-              foreignField: '_id',
-              as: 'policies.firewall.policy'
-            }
-          },
-          {
-            $unwind: {
-              path: '$policies.firewall.policy',
-              preserveNullAndEmptyArrays: true
-            }
-          },
-          {
-            $lookup: {
-              from: 'qospolicies',
-              localField: 'policies.qos.policy',
-              foreignField: '_id',
-              as: 'policies.qos.policy'
-            }
-          },
-          {
-            $unwind: {
-              path: '$policies.qos.policy',
-              preserveNullAndEmptyArrays: true
-            }
-          },
-          {
-            $lookup: {
-              from: 'pathlabels',
-              localField: 'interfaces.pathlabels',
-              foreignField: '_id',
-              as: 'pathlabels'
-            }
-          },
-          {
-            $lookup: {
-              from: 'vrrps',
-              localField: '_id',
-              foreignField: 'devices.device',
-              as: 'vrrp'
-            }
-          }
-        ]) : [],
+        ...hasFilters
+          ? ([
+              {
+                $lookup: {
+                  from: 'multilinkpolicies',
+                  localField: 'policies.multilink.policy',
+                  foreignField: '_id',
+                  as: 'policies.multilink.policy'
+                }
+              },
+              {
+                $unwind: {
+                  path: '$policies.multilink.policy',
+                  preserveNullAndEmptyArrays: true
+                }
+              },
+              {
+                $lookup: {
+                  from: 'firewallpolicies',
+                  localField: 'policies.firewall.policy',
+                  foreignField: '_id',
+                  as: 'policies.firewall.policy'
+                }
+              },
+              {
+                $unwind: {
+                  path: '$policies.firewall.policy',
+                  preserveNullAndEmptyArrays: true
+                }
+              },
+              {
+                $lookup: {
+                  from: 'qospolicies',
+                  localField: 'policies.qos.policy',
+                  foreignField: '_id',
+                  as: 'policies.qos.policy'
+                }
+              },
+              {
+                $unwind: {
+                  path: '$policies.qos.policy',
+                  preserveNullAndEmptyArrays: true
+                }
+              },
+              {
+                $lookup: {
+                  from: 'pathlabels',
+                  localField: 'interfaces.pathlabels',
+                  foreignField: '_id',
+                  as: 'pathlabels'
+                }
+              },
+              {
+                $lookup: {
+                  from: 'vrrps',
+                  localField: '_id',
+                  foreignField: 'devices.device',
+                  as: 'vrrp'
+                }
+              }
+            ])
+          : [],
         {
           $lookup: {
             from: 'organizations',
@@ -677,7 +682,8 @@ class DevicesService {
             // get the actual status from memory if it was not updated in DB
             d.isConnected = connections.isConnected(d.machineId);
             d.deviceStatus = d.isConnected
-              ? deviceStatus.getDeviceStatus(d.machineId) || { state: d.deviceState } : {};
+              ? deviceStatus.getDeviceStatus(d.machineId) || { state: d.deviceState }
+              : {};
             if (d.isConnected) {
               // sync is set to 'unknown' in query for correct filtering if device not connected
               d.sync.state = d.sync.statePrev;
@@ -909,7 +915,8 @@ class DevicesService {
       }
 
       // Skip items with empty params
-      const configuration = !Array.isArray(deviceConf.message) ? []
+      const configuration = !Array.isArray(deviceConf.message)
+        ? []
         : deviceConf.message.filter(item => item.params);
 
       return Service.successResponse({
@@ -919,7 +926,7 @@ class DevicesService {
       });
     } catch (e) {
       return DevicesService.handleRequestError(e,
-        { deviceStatus: deviceStatus, configuration: [] });
+        { deviceStatus, configuration: [] });
     }
   }
 
@@ -962,7 +969,7 @@ class DevicesService {
       // Generate response
       return Service.successResponse({
         deviceToken: deviceObject.deviceToken,
-        server: server
+        server
       });
     } catch (e) {
       return Service.rejectResponse(
@@ -1182,7 +1189,7 @@ class DevicesService {
         {
           entity: 'agent',
           message: 'get-device-logs',
-          params: params
+          params
         },
         configs.get('directMessageTimeout', 'number')
       );
@@ -1223,7 +1230,7 @@ class DevicesService {
           params: {
             deviceId: id,
             response: deviceLogs.message,
-            filter: filter
+            filter
           }
         });
         return Service.rejectResponse(errorMessage, 500);
@@ -1267,7 +1274,7 @@ class DevicesService {
           message: 'get-device-packet-traces',
           params: {
             packets: packets || 100,
-            timeout: timeout
+            timeout
           }
         },
         timeout + configs.get('directMessageTimeout', 'number')
@@ -1405,7 +1412,7 @@ class DevicesService {
 
         if (tunnelCount > 0) {
           logger.debug('Tunnels found when deleting device',
-            { params: { filters }, user: user });
+            { params: { filters }, user });
           throw createError(400, 'All devices tunnels must be deleted before deleting devices');
         }
 
@@ -1439,7 +1446,7 @@ class DevicesService {
           account: delDevices[0].account,
           org: orgList[0],
           count: deviceCount,
-          orgCount: orgCount,
+          orgCount,
           increment: -delDevices.length
         }, session);
 
@@ -1507,7 +1514,7 @@ class DevicesService {
 
         if (tunnelCount > 0) {
           logger.debug('Tunnels found when deleting device',
-            { params: { deviceId: id }, user: user });
+            { params: { deviceId: id }, user });
           throw createError(400, 'All device tunnels must be deleted before deleting a device');
         }
 
@@ -1542,7 +1549,7 @@ class DevicesService {
           account: delDevice.account,
           org: orgList[0],
           count: deviceCount,
-          orgCount: orgCount,
+          orgCount,
           increment: -1
         }, session);
 
@@ -1706,7 +1713,8 @@ class DevicesService {
               logger.error('Not allowed to remove interfaces', { params: { origIntf } });
               throw createError(400, 'Not allowed to remove interfaces');
             };
-            const ifcType = !updIntf ? 'Removed'
+            const ifcType = !updIntf
+              ? 'Removed'
               : updIntf.isAssigned ? updIntf.type : 'Unassigned';
 
             // Check tunnels connectivity and static routes for removed or modified interfaces
@@ -1820,7 +1828,8 @@ class DevicesService {
 
               // Public port and NAT type is assigned by system only
               updIntf.PublicPort = updIntf.useStun
-                ? origIntf.PublicPort : configs.get('tunnelPort');
+                ? origIntf.PublicPort
+                : configs.get('tunnelPort');
               updIntf.NatType = updIntf.useStun ? origIntf.NatType : 'Static';
               updIntf.internetAccess = origIntf.internetAccess;
               updIntf.linkStatus = origIntf.linkStatus;
@@ -1833,11 +1842,13 @@ class DevicesService {
               if (updIntf.isAssigned) {
                 // interface is assigned, check if removed path labels not used by any tunnel
                 const pathlabels = (Array.isArray(updIntf.pathlabels))
-                  ? updIntf.pathlabels.map(p => p._id.toString()) : [];
+                  ? updIntf.pathlabels.map(p => p._id.toString())
+                  : [];
                 const remLabels = (Array.isArray(origIntf.pathlabels))
                   ? origIntf.pathlabels.filter(
                     p => !pathlabels.includes(p._id.toString())
-                  ) : [];
+                  )
+                  : [];
                 if (remLabels.length > 0) {
                   const hasTunnels = origTunnels.some(({ interfaceA, interfaceB, pathlabel }) => {
                     return (interfaceA.toString() === origIntf._id.toString() ||
@@ -2310,7 +2321,8 @@ class DevicesService {
       const wasApproved = origDevice.isApproved;
       // if the device was not approved before then send a full sync job with updated parameters
       const method = wasApproved ? 'modify' : 'sync';
-      const opDevices = wasApproved ? [origDevice]
+      const opDevices = wasApproved
+        ? [origDevice]
         : [{ ...updDevice.toObject(), org: orgList[0] }];
       const applyData = wasApproved ? { org: orgList[0], newDevice: updDevice } : null;
 
@@ -2861,8 +2873,8 @@ class DevicesService {
         org: orgList[0].toString(),
         ifNum: null, // null to get all interfaces stats
         id: null, // null get all devices stats
-        startTime: startTime,
-        endTime: endTime
+        startTime,
+        endTime
       });
       return Service.successResponse(stats);
     } catch (e) {
@@ -2884,10 +2896,10 @@ class DevicesService {
       const orgList = await getAccessTokenOrgList(user, org, true);
       const stats = await DevicesService.queryDeviceStats({
         org: orgList[0].toString(),
-        id: id,
+        id,
         ifNum: ifnum,
-        startTime: startTime,
-        endTime: endTime
+        startTime,
+        endTime
       });
       return Service.successResponse(stats);
     } catch (e) {
@@ -2943,10 +2955,10 @@ class DevicesService {
       const orgList = await getAccessTokenOrgList(user, org, true);
       const stats = await DevicesService.queryDeviceTunnelStats({
         org: orgList[0].toString(),
-        id: id,
-        tunnelnum: tunnelnum,
-        startTime: startTime,
-        endTime: endTime
+        id,
+        tunnelnum,
+        startTime,
+        endTime
       });
       return Service.successResponse(stats);
     } catch (e) {
@@ -2968,9 +2980,9 @@ class DevicesService {
       const orgList = await getAccessTokenOrgList(user, org, true);
       const stats = await DevicesService.queryDeviceHealth({
         org: orgList[0].toString(),
-        id: id,
-        startTime: startTime,
-        endTime: endTime
+        id,
+        startTime,
+        endTime
       });
       return Service.successResponse(stats);
     } catch (e) {
@@ -3488,7 +3500,7 @@ class DevicesService {
         { _id: deviceObject._id },
         {
           $push: {
-            dhcp: dhcp
+            dhcp
           }
         },
         { new: true }
@@ -3537,7 +3549,7 @@ class DevicesService {
       if (!valid) {
         logger.warn('interface perform operation failed',
           {
-            params: { body: interfaceOperationReq, err: err }
+            params: { body: interfaceOperationReq, err }
           });
         return Service.rejectResponse(err, 500);
       }
@@ -3565,7 +3577,7 @@ class DevicesService {
                 data = JSON.parse(`{${data}}`);
                 data = mapLteNames(data);
                 await updatePin(data, deviceObject, interfaceId, selectedIf);
-                return JSON.stringify({ err_msg: parsedError, data: data });
+                return JSON.stringify({ err_msg: parsedError, data });
               } catch (err) { }
             },
             onComplete: async (jobId, response) => {
@@ -3582,7 +3594,9 @@ class DevicesService {
 
       const agentAction = actions[interfaceType]
         ? actions[interfaceType][interfaceOperationReq.op]
-          ? actions[interfaceType][interfaceOperationReq.op] : null : null;
+          ? actions[interfaceType][interfaceOperationReq.op]
+          : null
+        : null;
 
       if (agentAction) {
         const params = interfaceOperationReq.params || {};
@@ -3594,14 +3608,14 @@ class DevicesService {
           if (!valid) {
             logger.warn('interface perform operation failed',
               {
-                params: { body: interfaceOperationReq, err: err }
+                params: { body: interfaceOperationReq, err }
               });
             return Service.rejectResponse(err, 500);
           }
         }
 
         if (agentAction.job) {
-          const tasks = [{ entity: 'agent', message: agentAction.message, params: params }];
+          const tasks = [{ entity: 'agent', message: agentAction.message, params }];
           const callback = agentAction.onComplete ? agentAction.onComplete : null;
           try {
             const job = await deviceQueues
@@ -3612,7 +3626,7 @@ class DevicesService {
                 // Data
                 {
                   title: agentAction.title,
-                  tasks: tasks
+                  tasks
                 },
                 // Response data
                 {
@@ -3652,7 +3666,7 @@ class DevicesService {
               {
                 entity: 'agent',
                 message: agentAction.message,
-                params: params
+                params
               },
               configs.get('directMessageTimeout', 'number')
             );

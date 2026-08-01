@@ -69,7 +69,7 @@ exports.deviceConnectionClosed = async (deviceId) => {
  */
 const deviceProcessor = async (job) => {
   // Job is passed twice - for event data and event header.
-  logger.info('Processing job', { params: { job: job }, job: job });
+  logger.info('Processing job', { params: { job }, job });
 
   // Get tasks
   const tasks = job.data.message.tasks;
@@ -90,7 +90,7 @@ const deviceProcessor = async (job) => {
     // 3. Update transaction job progress
     async.waterfall(operations, async (error, results) => {
       if (error) {
-        logger.error('Job error', { params: { job: job, err: error.message }, job: job });
+        logger.error('Job error', { params: { job, err: error.message }, job });
         // Call error callback only if the job reached maximal retries
         // We check if the remaining attempts are less than 1 instead of 0
         // since this code runs before the number of attempts is decreased.
@@ -103,7 +103,7 @@ const deviceProcessor = async (job) => {
           job.state('inactive');
           job.save();
           logger.info('The device message is not sent, the job state set as pending',
-            { params: { sendAttempts }, job: job });
+            { params: { sendAttempts }, job });
           return resolve(false);
         } else if (remaining <= 1) {
           dispatcher.error(job.id, job.data.response);
@@ -137,7 +137,7 @@ const deviceProcessor = async (job) => {
             results: results.message,
             deviceHash: results['router-cfg-hash'] || 'n/a'
           },
-          job: job
+          job
         });
         // Dispatch the response for Job completion
         // In the past this was called from job complete event but there were some missing events

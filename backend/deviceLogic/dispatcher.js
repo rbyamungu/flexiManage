@@ -198,10 +198,11 @@ Object.entries(methods).forEach(([method, functions]) => {
  */
 const apply = async (devices, method, user, data = null) => {
   logger.info('Apply method called', {
-    params: { method: method || null, user: user, data: data }
+    params: { method: method || null, user, data }
   });
   const methodFunc = methods.hasOwnProperty(method)
-    ? methods[method].apply : null;
+    ? methods[method].apply
+    : null;
   if (!methodFunc) {
     throw new Error('Apply method not found');
   }
@@ -218,7 +219,7 @@ const apply = async (devices, method, user, data = null) => {
  */
 const complete = (jobId, jobResult) => {
   logger.debug('Dispatcher complete callback', {
-    params: { jobId: jobId, result: jobResult }
+    params: { jobId, result: jobResult }
   });
   const method = methods.hasOwnProperty(jobResult.method)
     ? methods[jobResult.method].complete
@@ -226,7 +227,7 @@ const complete = (jobId, jobResult) => {
   if (method != null) {
     return method(jobId, jobResult.data);
   } else {
-    logger.info('Complete method not found', { params: { jobId: jobId } });
+    logger.info('Complete method not found', { params: { jobId } });
   }
 };
 
@@ -238,17 +239,17 @@ const complete = (jobId, jobResult) => {
  * @return {void}
  */
 const error = (jobId, jobResult) => {
-  logger.info('Dispatcher error callback called', { params: { jobId: jobId, result: jobResult } });
+  logger.info('Dispatcher error callback called', { params: { jobId, result: jobResult } });
   const method = methods.hasOwnProperty(jobResult.method) ? methods[jobResult.method].error : null;
   if (method != null) {
     return method(jobId, jobResult.data);
   } else {
-    logger.info('error method not found', { params: { jobId: jobId } });
+    logger.info('error method not found', { params: { jobId } });
   }
 };
 
 module.exports = {
-  apply: apply,
-  complete: complete,
-  error: error
+  apply,
+  complete,
+  error
 };

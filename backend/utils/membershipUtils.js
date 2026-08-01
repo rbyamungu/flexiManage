@@ -126,8 +126,10 @@ const validateOrgAccess = async (user, to = 'organization', entity = null, modif
   // If user has an account permission, or exact permission,
   // he can access all entities under it
   const foundPermission = userPermissions.find((permission) => {
-    const permissionEntity = permission.to === 'organization' ? permission.organization
-      : permission.to === 'group' ? permission.group
+    const permissionEntity = permission.to === 'organization'
+      ? permission.organization
+      : permission.to === 'group'
+        ? permission.group
         : user.defaultAccount._id;
     if ((permission.to === 'account' || (permission.to === to && permissionEntity === entity)) &&
     roles.includes(permission.role)) return true;
@@ -173,7 +175,8 @@ const validateOrgAccess = async (user, to = 'organization', entity = null, modif
   let leftOrganizations = [...organizationsToAccess];
   for (const permission of userPermissions) {
     if (roles.includes(permission.role)) {
-      permission.entity = permission.to === 'organization' ? permission.organization.toString()
+      permission.entity = permission.to === 'organization'
+        ? permission.organization.toString()
         : permission.to === 'group' ? permission.group : user.defaultAccount._id;
       const allowedOrganizations = await getPermissionOrganizations(permission);
       leftOrganizations = difference(leftOrganizations, allowedOrganizations);
@@ -286,8 +289,10 @@ const getAccessTokenOrgList = async (
       // Default case
       if (!user.accessToken) return [user.defaultOrg._id.toString()];
       const orgs = await validateOrgAccess(user, user.tokenTo,
-        user.tokenTo === 'organization' ? user.tokenOrganization
-          : user.tokenTo === 'group' ? user.tokenGroup
+        user.tokenTo === 'organization'
+          ? user.tokenOrganization
+          : user.tokenTo === 'group'
+            ? user.tokenGroup
             : user.defaultAccount._id.toString(), false);
       return orgs;
     } else {
@@ -417,9 +422,9 @@ const orgUpdateFromNull = async ({ user }, res) => {
 
 // Default exports
 module.exports = {
-  getUserOrganizations: getUserOrganizations,
-  getUserOrgByID: getUserOrgByID,
-  getAccessTokenOrgList: getAccessTokenOrgList,
-  getUserAccounts: getUserAccounts,
-  orgUpdateFromNull: orgUpdateFromNull
+  getUserOrganizations,
+  getUserOrgByID,
+  getAccessTokenOrgList,
+  getUserAccounts,
+  orgUpdateFromNull
 };

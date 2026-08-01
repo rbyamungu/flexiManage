@@ -52,12 +52,12 @@ function generateTunnelParams (tunnelNum, tunnelRange) {
   const sa2 = (l * 256 + h + 1);
 
   return {
-    ip1: ip1,
-    ip2: ip2,
-    mac1: mac1,
-    mac2: mac2,
-    sa1: sa1,
-    sa2: sa2
+    ip1,
+    ip2,
+    mac1,
+    mac2,
+    sa1,
+    sa2
   };
 };
 

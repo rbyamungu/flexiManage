@@ -78,7 +78,7 @@ class VrrpService {
               name: d.device.name,
               _id: d.device._id.toString(),
               jobStatus: d.jobStatus,
-              status: status,
+              status,
               interface: d.interface
             };
           }),
@@ -362,7 +362,7 @@ class VrrpService {
   static async validateVrrp (vrrp, org) {
     const devicesIds = vrrp.devices.map(d => d.device);
     const devicesList = await devices.find({
-      org: org, _id: { $in: devicesIds }
+      org, _id: { $in: devicesIds }
     }, '_id interfaces name').lean();
     if (devicesList.length !== vrrp.devices.length) {
       return {

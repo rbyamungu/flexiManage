@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-var jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const { preDefinedPermissions, getUserPermissions } = require('./models/membership');
-var configs = require('./configs')();
+const configs = require('./configs')();
 const logger = require('./logging/logging')({ module: module.filename, type: 'req' });
 
 // JWT strategy definition
@@ -30,7 +30,7 @@ exports.getToken = async function ({ user }, override = {}, shouldExpire = true)
   } catch (err) {
     perms = { ...preDefinedPermissions.none };
     logger.error('Could not get user permissions', {
-      params: { user: user, message: err.message }
+      params: { user, message: err.message }
     });
   }
 
@@ -47,7 +47,7 @@ exports.getToken = async function ({ user }, override = {}, shouldExpire = true)
       accountName: user.defaultAccount
         ? user.defaultAccount.name
         : null,
-      perms: perms,
+      perms,
       mfaVerified,
       ...override
     },

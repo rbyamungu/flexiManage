@@ -256,7 +256,7 @@ adminRouter
     // Return  static info from:
     const result = {
       ...registeredUsers[0],
-      monthlyStats: monthlyStats,
+      monthlyStats,
       connectedDevices: [],
       accounts
     };
@@ -607,6 +607,6 @@ const createDefaultOrg = (id = '', name = '', billingInfo = { current: 0, max: 0
     organization_name: name,
     num_devices: 0,
     num_tunnels: 0,
-    billingInfo: billingInfo
+    billingInfo
   };
 };

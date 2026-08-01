@@ -105,7 +105,7 @@ notificationsRouter
             org: req.user.defaultOrg._id.toString(),
             err: err.message
           },
-          req: req
+          req
         });
         return next(createError(500));
       }
@@ -131,7 +131,7 @@ notificationsRouter
           org: req.user.defaultOrg._id.toString(),
           err: err.message
         },
-        req: req
+        req
       });
       return next(createError(500));
     }
@@ -155,7 +155,7 @@ notificationsRouter.route('/:id')
             org: req.user.defaultOrg._id.toString(),
             err: err.message
           },
-          req: req
+          req
         });
         return next(createError(500));
       }

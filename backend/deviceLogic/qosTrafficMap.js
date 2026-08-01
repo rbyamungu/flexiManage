@@ -44,7 +44,8 @@ const apply = async (orgDevices, user, data) => {
     await getDevicesTrafficMapJobInfo(org, devices ? Object.keys(devices) : []);
 
   const opDevices = (orgDevices && installIds)
-    ? orgDevices.filter((device) => installIds.hasOwnProperty(device._id)) : [];
+    ? orgDevices.filter((device) => installIds.hasOwnProperty(device._id))
+    : [];
 
   const jobPromises = [];
   opDevices.forEach(async device => {
@@ -53,7 +54,7 @@ const apply = async (orgDevices, user, data) => {
     tasks.push({ entity: 'agent', message, params });
     const jobPromise = deviceQueues.addJob(machineId, userName, org,
       // Data
-      { title: `Add QoS Traffic Map to device ${device.name}`, tasks: tasks },
+      { title: `Add QoS Traffic Map to device ${device.name}`, tasks },
       // Response data
       {
         method: 'qosTrafficMap',
@@ -76,7 +77,7 @@ const apply = async (orgDevices, user, data) => {
       arr.push(job);
       logger.info('QoS Traffic Map Job Queued', {
         params: {
-          job: job
+          job
         }
       });
     } else {
@@ -87,9 +88,11 @@ const apply = async (orgDevices, user, data) => {
     return arr;
   }, []);
   const status = fulfilled.length < opDevices.length
-    ? 'partially completed' : 'completed';
+    ? 'partially completed'
+    : 'completed';
   const warningMessage = fulfilled.length < opDevices.length
-    ? `${fulfilled.length} of ${opDevices.length} QoS Traffic Map jobs added` : '';
+    ? `${fulfilled.length} of ${opDevices.length} QoS Traffic Map jobs added`
+    : '';
   return { ids: fulfilled.flat().map(job => job.id), status, message: warningMessage, ...params };
 };
 
@@ -110,7 +113,7 @@ const complete = async (jobId, res) => {
     );
   } catch (error) {
     logger.error('Complete QoS Traffic Map job, failed', {
-      params: { result: res, jobId: jobId, message: error.message }
+      params: { result: res, jobId, message: error.message }
     });
   }
 };
@@ -146,7 +149,7 @@ const resetDeviceLastRequestTime = async (jobId, res) => {
     );
   } catch (error) {
     logger.error('Revert QoS Traffic Map job, failed', {
-      params: { result: res, jobId: jobId, message: error.message }
+      params: { result: res, jobId, message: error.message }
     });
   }
 };
@@ -157,10 +160,10 @@ const resetDeviceLastRequestTime = async (jobId, res) => {
  * @param {Object} res   - response data for job ID
  */
 const error = async (jobId, res) => {
-  logger.info('QoS Traffic Map job failed', { params: { result: res, jobId: jobId } });
+  logger.info('QoS Traffic Map job failed', { params: { result: res, jobId } });
   if (!res || !res.deviceId) {
     logger.error('QoS Traffic Map job error got an invalid job result', {
-      params: { result: res, jobId: jobId }
+      params: { result: res, jobId }
     });
     return;
   }
@@ -294,7 +297,7 @@ const getDevicesTrafficMapJobInfo = async (org, deviceIdList, sync = false, devi
   return {
     message: 'add-qos-traffic-map',
     params: trafficMap,
-    deviceJobResp: { requestTime: requestTime },
+    deviceJobResp: { requestTime },
     installIds: installIdsObject
   };
 };
@@ -327,12 +330,12 @@ const sync = async (deviceId, org, device) => {
 };
 
 module.exports = {
-  apply: apply,
-  complete: complete,
-  completeSync: completeSync,
-  error: error,
-  remove: remove,
-  sync: sync,
+  apply,
+  complete,
+  completeSync,
+  error,
+  remove,
+  sync,
   getFullTrafficMap,
   getDevicesTrafficMapJobInfo
 };

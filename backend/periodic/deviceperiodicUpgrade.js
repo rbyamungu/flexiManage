@@ -120,8 +120,8 @@ class DeviceSwUpgrade {
           );
           jobResults.forEach(job => {
             logger.info('Upgrade device job queued', {
-              params: { jobId: job.id, version: version },
-              job: job,
+              params: { jobId: job.id, version },
+              job,
               periodic: { task: this.taskInfo }
             });
           });

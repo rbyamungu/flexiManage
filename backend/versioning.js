@@ -128,12 +128,12 @@ const verifyAgentVersion = (version) => {
 };
 
 module.exports = {
-  getMajorVersion: getMajorVersion,
-  getMinorVersion: getMinorVersion,
+  getMajorVersion,
+  getMinorVersion,
   isVersionGreaterEquals,
-  isAgentVersionCompatible: isAgentVersionCompatible,
-  isSemVer: isSemVer,
-  isVppVersion: isVppVersion,
-  verifyAgentVersion: verifyAgentVersion,
-  routerVersionsCompatible: routerVersionsCompatible
+  isAgentVersionCompatible,
+  isSemVer,
+  isVppVersion,
+  verifyAgentVersion,
+  routerVersionsCompatible
 };

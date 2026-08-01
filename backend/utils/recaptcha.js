@@ -31,7 +31,7 @@ class ReCaptcha {
 
     return fetch(verifyURL, {
       method: 'POST',
-      headers: headers,
+      headers,
       body: encodedParams
     })
       .then(response => {

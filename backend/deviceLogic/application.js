@@ -154,7 +154,7 @@ const apply = async (deviceList, user, data) => {
 
   // Get application
   const app = await applications.findOne({
-    org: org,
+    org,
     _id: id
   }).populate('appStoreApp').populate('org').lean();
 
@@ -259,7 +259,7 @@ const apply = async (deviceList, user, data) => {
     await devices.updateMany(
       {
         _id: { $in: failedDevices },
-        org: org,
+        org,
         'applications.app': app._id
       },
       { $set: { 'applications.$.status': 'job queue failed' } },
@@ -324,9 +324,9 @@ const queueApplicationJob = async (
       application: {
         device: { _id: dev._id },
         app: application,
-        requestTime: requestTime,
-        op: op,
-        org: org
+        requestTime,
+        op,
+        org
       }
     };
 
@@ -335,8 +335,8 @@ const queueApplicationJob = async (
     // Here we call modifyDevice function to send the needed jobs before the uninstallation
     if (op === 'uninstall') {
       await modifyDeviceApply([dev], { username: 'system' }, {
-        org: org,
-        newDevice: newDevice
+        org,
+        newDevice
       });
     }
 
@@ -354,7 +354,7 @@ const queueApplicationJob = async (
           // Response data
           {
             method: 'application',
-            data: data
+            data
           },
           // Metadata
           { priority: 'normal', attempts: 1, removeOnComplete: false },
@@ -369,8 +369,8 @@ const queueApplicationJob = async (
     // Here we call modifyDevice function to send the needed jobs after the installation
     if (op === 'install' || op === 'config') {
       await modifyDeviceApply([dev], { username: 'system' }, {
-        org: org,
-        newDevice: newDevice
+        org,
+        newDevice
       });
     }
   }
@@ -388,7 +388,7 @@ const queueApplicationJob = async (
  */
 const complete = async (jobId, res) => {
   logger.info('Application job completed', {
-    params: { result: res, jobId: jobId }
+    params: { result: res, jobId }
   });
 
   const { op, org, app, device } = res.application;
@@ -404,7 +404,7 @@ const complete = async (jobId, res) => {
     if (op === 'upgrade') {
       // update version on db
       await applications.updateOne(
-        { org: org, _id: app._id },
+        { org, _id: app._id },
         { $set: { installedVersion: app.appStoreApp.latestVersion, pendingToUpgrade: false } }
       );
     }
@@ -412,7 +412,7 @@ const complete = async (jobId, res) => {
     await devices.findOneAndUpdate(
       {
         _id: device._id,
-        org: org,
+        org,
         'applications.app': app._id
       },
       update,
@@ -420,7 +420,7 @@ const complete = async (jobId, res) => {
     );
   } catch (err) {
     logger.error('Device application status update failed', {
-      params: { jobId: jobId, res: res, err: err.message }
+      params: { jobId, res, err: err.message }
     });
   }
 };
@@ -435,7 +435,7 @@ const complete = async (jobId, res) => {
  */
 const error = async (jobId, res) => {
   logger.error('Application job failed', {
-    params: { result: res, jobId: jobId }
+    params: { result: res, jobId }
   });
 
   if (!res) return;
@@ -462,13 +462,13 @@ const error = async (jobId, res) => {
     }
 
     await devices.updateOne(
-      { _id: _id, org: org, 'applications.app': app._id },
+      { _id, org, 'applications.app': app._id },
       { $set: { 'applications.$.status': status } },
       { upsert: false }
     );
   } catch (err) {
     logger.error('Device policy status update failed', {
-      params: { jobId: jobId, res: res, err: err.message }
+      params: { jobId, res, err: err.message }
     });
   }
 };
@@ -487,14 +487,14 @@ const remove = async (job) => {
 
   if (['inactive', 'delayed'].includes(job._state)) {
     logger.info('Application job removed', {
-      params: { job: job }
+      params: { job }
     });
     // Set the status to "job deleted" only
     // for the last policy related job.
     const status = 'job deleted';
     const query = {
-      _id: _id,
-      org: org,
+      _id,
+      org,
       'applications.app': app._id
     };
     try {
@@ -522,13 +522,13 @@ const remove = async (job) => {
         );
 
         await modifyDeviceApply([devObj], 'system', {
-          org: org,
+          org,
           newDevice: updated
         });
       }
     } catch (err) {
       logger.error('Device application status update failed', {
-        params: { job: job, status: status, err: err.message }
+        params: { job, status, err: err.message }
       });
     }
   }
@@ -593,10 +593,10 @@ const completeSync = async (jobId, jobsData) => {
 };
 
 module.exports = {
-  apply: apply,
-  complete: complete,
-  error: error,
-  remove: remove,
-  sync: sync,
-  completeSync: completeSync
+  apply,
+  complete,
+  error,
+  remove,
+  sync,
+  completeSync
 };

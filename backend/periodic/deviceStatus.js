@@ -246,7 +246,8 @@ class DeviceStatus {
     }
 
     const tunnelId = `tunnelId:${notificationTargets.tunnelId}`;
-    const notificationKey = severity ? 'notification-lock:' + notificationName + ':' +
+    const notificationKey = severity
+      ? 'notification-lock:' + notificationName + ':' +
     tunnelId + ':' + isResolved + ':' + severity + orgId
       : 'notification-lock:' + notificationName + ':' + tunnelId + ':' + isResolved + ':' + orgId;
 
@@ -279,7 +280,7 @@ class DeviceStatus {
       logger.error(`Failed to add the "${alertName}" alert for
        ${tunnelNum ? 'tunnel ' + tunnelNum : 'device ' + deviceInfo.name}`
       , {
-        params: { deviceID: deviceID, err: err.message },
+        params: { deviceID, err: err.message },
         periodic: { task: this.taskInfo }
       });
     }
@@ -305,8 +306,8 @@ class DeviceStatus {
 
     const thresholdValue = tunnelId
       ? (tunnels.findOne(
-        { num: tunnelId, org }, { fields: { notificationsSettings: 1 } }
-      )?.notificationsSettings?.[thresholdType] ?? notificationsConfRules[alertKey][thresholdType])
+          { num: tunnelId, org }, { fields: { notificationsSettings: 1 } }
+        )?.notificationsSettings?.[thresholdType] ?? notificationsConfRules[alertKey][thresholdType])
       : notificationsConfRules[alertKey][thresholdType];
 
     const thresholdUnit = notificationsConfRules[alertKey].thresholdUnit;
@@ -357,7 +358,7 @@ class DeviceStatus {
       }
     } catch (error) {
       logger.error(`Failed to resolve alert for device ${deviceInfo.name}`, {
-        params: { deviceID: deviceID, err: error.message },
+        params: { deviceID, err: error.message },
         periodic: { task: this.taskInfo }
       });
     }
@@ -420,9 +421,13 @@ class DeviceStatus {
     const severity = tunnelId ? alerts[alertName][tunnelId].severity : alerts[alertName].severity;
 
     const title = isResolved ? `[resolved] ${alertName}` : alertName;
-    const details = 'The value of the ' + alertName + ' in ' + (tunnelId ? 'tunnel ' +
-    tunnelId : 'device ' + name) + ' has ' + (isResolved ? 'returned to normal (under ' +
-    agentAlertsInfo.threshold + agentAlertsInfo.unit + ')' : 'increased to ' +
+    const details = 'The value of the ' + alertName + ' in ' + (tunnelId
+      ? 'tunnel ' +
+    tunnelId
+      : 'device ' + name) + ' has ' + (isResolved
+      ? 'returned to normal (under ' +
+    agentAlertsInfo.threshold + agentAlertsInfo.unit + ')'
+      : 'increased to ' +
     agentAlertsInfo.value + agentAlertsInfo.unit);
     const notification = {
       org,
@@ -600,7 +605,7 @@ class DeviceStatus {
     const deviceInfo = connections.getDeviceInfo(deviceID);
     if (!deviceInfo) {
       logger.warn('Failed to get device info', {
-        params: { deviceID: deviceID },
+        params: { deviceID },
         periodic: { task: this.taskInfo }
       });
       return;
@@ -658,7 +663,7 @@ class DeviceStatus {
                 needNewIKEv2Certificate = true;
               } else if (ikev2.error) {
                 logger.warn('IKEv2 certificate error on device', {
-                  params: { deviceID: deviceID, err: ikev2.error },
+                  params: { deviceID, err: ikev2.error },
                   periodic: { task: this.taskInfo }
                 });
                 needNewIKEv2Certificate = true;
@@ -697,20 +702,20 @@ class DeviceStatus {
           }
         } else {
           logger.warn('Failed to get device status', {
-            params: { deviceID: deviceID, message: msg },
+            params: { deviceID, message: msg },
             periodic: { task: this.taskInfo }
           });
         }
       }, (err) => {
         logger.warn('Failed to get device status', {
-          params: { deviceID: deviceID, err: err.message },
+          params: { deviceID, err: err.message },
           periodic: { task: this.taskInfo }
         });
         return err;
       })
       .catch((err) => {
         logger.warn('Failed to get device status', {
-          params: { deviceID: deviceID, err: err.message },
+          params: { deviceID, err: err.message },
           periodic: { task: this.taskInfo }
         });
       })
@@ -882,14 +887,14 @@ class DeviceStatus {
     const { org, deviceObj: deviceId, name } = deviceInfo;
     if (!this.status[machineId] || newState !== this.status[machineId].state) {
       const targets = {
-        deviceId: deviceId,
+        deviceId,
         tunnelId: null,
         interfaceId: null
       };
       const resolved = newState === 'running';
 
       const notification = {
-        org: org,
+        org,
         title: resolved ? '[resolved] Router state change' : 'Router state change',
         details: `Router state changed to ${newState} in the device ${name}`,
         eventType: 'Running router',
@@ -1053,7 +1058,8 @@ class DeviceStatus {
         const notification = {
           org: deviceInfo.org,
           title: eventType,
-          details: resolved ? `
+          details: resolved
+            ? `
           ${eventType} has returned to normal in Tunnel ${targets.tunnelId}`
             : `${eventType} has reached ${parseFloat(currentValue.toFixed(1))}${unit}
              in Tunnel ${targets.tunnelId}`,
@@ -1187,11 +1193,13 @@ class DeviceStatus {
             notificationName, targets, resolved, org);
 
           const notification = {
-            org: org,
-            title: tunnelState.status === 'up' ? '[resolved] Tunnel connection change'
+            org,
+            title: tunnelState.status === 'up'
+              ? '[resolved] Tunnel connection change'
               : 'Tunnel connection change',
             details: 'Tunnel ' + tunnelID + ' state changed to ' + (tunnelState.status === 'down'
-              ? 'Not connected' : 'Connected'),
+              ? 'Not connected'
+              : 'Connected'),
             targets,
             eventType: notificationName,
             resolved
@@ -1339,14 +1347,14 @@ class DeviceStatus {
         $inc: { [`stats.orgs.${org}.devices.${device}.bytes`]: bytes },
         $set: { [`stats.orgs.${org}.account`]: account }
       };
-      await deviceAggregateStats.findOneAndUpdate({ month: month }, update, {
+      await deviceAggregateStats.findOneAndUpdate({ month }, update, {
         upsert: true,
         useFindAndModify: false
       });
     } catch (err) {
       logger.warn('Error storing aggregated device statistics to db',
         {
-          params: { deviceId: device, bytes: bytes, err: err.message },
+          params: { deviceId: device, bytes, err: err.message },
           periodic: { task: this.taskInfo }
         });
     }
@@ -1374,7 +1382,8 @@ class DeviceStatus {
      */
   getDeviceLastUpdateTime (deviceID) {
     return !this.status[deviceID].lastUpdateTime
-      ? 0 : this.status[deviceID].lastUpdateTime;
+      ? 0
+      : this.status[deviceID].lastUpdateTime;
   }
 
   /**
@@ -1510,7 +1519,7 @@ class DeviceStatus {
   }
 }
 
-var deviceStatus = null;
+let deviceStatus = null;
 module.exports = function () {
   if (deviceStatus) return deviceStatus;
   else {

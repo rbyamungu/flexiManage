@@ -16,9 +16,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Generate a random number cryptographically secured
-var crandom = require('math-random');
-var baseChars62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-var baseCharsHex = '0123456789abcdef';
+const crandom = require('math-random');
+const baseChars62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const baseCharsHex = '0123456789abcdef';
 
 /**
  * Calculates a random number

@@ -449,7 +449,7 @@ class ApplicationLogic extends IApplication {
   };
 }
 
-var applicationLogic = null;
+let applicationLogic = null;
 module.exports = function () {
   if (applicationLogic) return applicationLogic;
   else {

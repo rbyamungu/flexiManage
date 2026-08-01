@@ -81,9 +81,9 @@ const queueUpgradeJobs = (devices, user, org, targetVersion) => {
     jobs.push(
       deviceQueues.addJob(dev.machineId, user, org,
         // Data
-        { title: `Upgrade device ${dev.hostname}`, tasks: tasks },
+        { title: `Upgrade device ${dev.hostname}`, tasks },
         // Response data
-        { method: 'upgrade', data: { device: dev._id, org: org } },
+        { method: 'upgrade', data: { device: dev._id, org } },
         // Metadata
         { priority: 'normal', attempts: 1, removeOnComplete: false },
         // Complete callback
@@ -117,7 +117,7 @@ const queueOsUpgradeJobs = (devices, user, orgId, reasons) => {
       jobs.push(
         deviceQueues.addJob(dev.machineId, user, orgId,
         // Data
-          { title: `Upgrade OS for device ${dev.name}`, tasks: tasks },
+          { title: `Upgrade OS for device ${dev.name}`, tasks },
           // Response data
           { method: 'osupgrade', data: { device: dev._id, org: orgId } },
           // Metadata
@@ -153,8 +153,8 @@ const apply = async (opDevices, user, data) => {
   const jobResults = await queueUpgradeJobs(opDevices, userName, org, version);
   jobResults.forEach(job => {
     logger.info('Upgrade device job queued', {
-      params: { jobId: job.id, version: version },
-      job: job
+      params: { jobId: job.id, version },
+      job
     });
   });
 
@@ -191,7 +191,8 @@ const osUpgradeApply = async (opDevices, user, data) => {
   }, []);
 
   const status = fulfilled.length < jobTasks.length
-    ? 'partially completed' : 'completed';
+    ? 'partially completed'
+    : 'completed';
 
   const desired = jobTasks.flat().map(job => job.id);
   const ids = fulfilled.flat().map(job => job.id);
@@ -220,7 +221,7 @@ const osUpgradeApply = async (opDevices, user, data) => {
  */
 const setQueuedUpgradeFlag = (deviceID, org, flag) => {
   return devices.updateMany(
-    { _id: { $in: deviceID }, org: org },
+    { _id: { $in: deviceID }, org },
     { $set: { 'upgradeSchedule.jobQueued': flag } },
     { upsert: false }
   );
@@ -239,7 +240,7 @@ const complete = async (jobId, res) => {
     await setQueuedUpgradeFlag([res.device], res.org, false);
   } catch (err) {
     logger.warn('Failed to update jobQueued field in database', {
-      params: { result: res, jobId: jobId, err: err.message }
+      params: { result: res, jobId, err: err.message }
     });
   }
 };
@@ -263,12 +264,12 @@ const osUpgradeComplete = async (jobId, res) => {
  * @return {void}
  */
 const error = async (jobId, res) => {
-  logger.warn('Device Upgrade failed', { params: { result: res, jobId: jobId } });
+  logger.warn('Device Upgrade failed', { params: { result: res, jobId } });
   try {
     await setQueuedUpgradeFlag([res.device], res.org, false);
   } catch (err) {
     logger.warn('Failed to update jobQueued field in database', {
-      params: { result: res, jobId: jobId, err: err.message }
+      params: { result: res, jobId, err: err.message }
     });
   }
 };
@@ -283,24 +284,24 @@ const error = async (jobId, res) => {
  */
 const remove = async (job) => {
   if (['inactive', 'delayed', 'active'].includes(job._state)) {
-    logger.info('Device Upgrade job removed', { params: { job: job } });
+    logger.info('Device Upgrade job removed', { params: { job } });
     try {
       const { org, device } = job.data.response.data;
       await setQueuedUpgradeFlag([device], org, false);
     } catch (err) {
       logger.error('Failed to update jobQueued field in database', {
-        params: { job: job, err: err.message }
+        params: { job, err: err.message }
       });
     }
   }
 };
 
 module.exports = {
-  apply: apply,
-  osUpgradeApply: osUpgradeApply,
-  complete: complete,
-  osUpgradeComplete: osUpgradeComplete,
-  queueUpgradeJobs: queueUpgradeJobs,
-  error: error,
-  remove: remove
+  apply,
+  osUpgradeApply,
+  complete,
+  osUpgradeComplete,
+  queueUpgradeJobs,
+  error,
+  remove
 };

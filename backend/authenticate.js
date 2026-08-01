@@ -15,21 +15,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
-var JwtStrategy = require('passport-jwt').Strategy;
-var ExtractJwt = require('passport-jwt').ExtractJwt;
-var User = require('./models/users');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
+const User = require('./models/users');
 const Accounts = require('./models/accounts');
 const Accesstoken = require('./models/accesstokens');
 const { verifyToken, getToken } = require('./tokens');
 const { permissionMasks } = require('./models/membership');
 const { orgUpdateFromNull, getUserOrgByID } = require('./utils/membershipUtils');
-var configs = require('./configs')();
+const configs = require('./configs')();
 const createError = require('http-errors');
 const reCaptcha = require('./utils/recaptcha')(configs.get('captchaKey'));
 const logger = require('./logging/logging')({ module: module.filename, type: 'req' });
-var jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 
 // Choose whether to add the username or ID for logging purposes
 const useUserName = configs.get('logUserName') || false;
@@ -42,7 +42,7 @@ passport.deserializeUser(User.deserializeUser());
 exports.localPassport = passport.use(new LocalStrategy(User.authenticate()));
 
 // Define JWT authentication strategy
-var opts = {};
+const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 opts.secretOrKey = configs.get('userTokenSecretKey');
 exports.jwtPassport = passport.use('jwt', new JwtStrategy(opts, async (jwtPayload, done) => {
@@ -123,7 +123,7 @@ const setUserPerms = async (user, jwtPayload, token = null) => {
 
     if (!userAccount) {
       logger.warn('Could not find account by jwt payload', {
-        params: { jwtPayload: jwtPayload }
+        params: { jwtPayload }
       });
 
       return false;
@@ -178,7 +178,7 @@ exports.verifyUserLocal = async function (req, res, next) {
           err: (err || info).name,
           message: errMsg
         },
-        req: req
+        req
       });
       return next(createError(status, responseMsg));
     } else {
@@ -197,7 +197,7 @@ exports.verifyUserLocal = async function (req, res, next) {
         } catch (err) {
           logger.error('Could not get user info', {
             params: { user: req.body.username, message: err.message },
-            req: req
+            req
           });
           return next(createError(500, 'Could not get user info'));
         }
@@ -268,10 +268,10 @@ exports.verifyUserJWT = function (req, res, next) {
               res.setHeader('Access-Control-Allow-Origin', req.header('Origin'));
             }
             if (err.name === 'TokenExpiredError') {
-              logger.info('User refresh token expired', { params: { err: err.message }, req: req });
+              logger.info('User refresh token expired', { params: { err: err.message }, req });
               return next(createError(401, 'session expired'));
             }
-            logger.warn('User token refresh failed', { params: { err: err.message }, req: req });
+            logger.warn('User token refresh failed', { params: { err: err.message }, req });
             return err.name === 'MongoError'
               ? next(createError(500))
               : next(createError(401));
@@ -284,7 +284,7 @@ exports.verifyUserJWT = function (req, res, next) {
             ? [err.message, 500, 'Internal server error']
             : [info.message, 401, info.message];
 
-          logger.warn('JWT verification failed', { params: { err: errMsg }, req: req });
+          logger.warn('JWT verification failed', { params: { err: errMsg }, req });
           return next(createError(status, responseMsg));
         }
       }
@@ -308,7 +308,8 @@ exports.verifyUserJWT = function (req, res, next) {
 exports.verifyAdmin = function (req, res, next) {
   // Allow access to admin users only
   return !req.user.admin
-    ? next(createError(403, 'You are not authorized for this operation')) : next();
+    ? next(createError(403, 'You are not authorized for this operation'))
+    : next();
 };
 
 /**
@@ -369,7 +370,7 @@ exports.verifyUserOrLoginJWT = function (req, res, next) {
 
   passport.authenticate(['jwt-login', 'jwt'], { session: false }, async (err, user, info) => {
     if (err || !user) {
-      logger.warn('JWT verification failed', { params: { err: err?.message }, req: req });
+      logger.warn('JWT verification failed', { params: { err: err?.message }, req });
       return next(createError(401));
     }
     req.user = user;

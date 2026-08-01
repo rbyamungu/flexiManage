@@ -278,7 +278,7 @@ const transformBGP = async (device) => {
 
       neighbors.push({
         ip: remoteIp,
-        remoteAsn: remoteAsn,
+        remoteAsn,
         password: '',
         inboundFilter: '',
         outboundFilter: '',
@@ -299,9 +299,9 @@ const transformBGP = async (device) => {
   const bgpConfig = {
     routerId: bgp.routerId,
     localAsn: bgp.localASN,
-    neighbors: neighbors,
+    neighbors,
     redistributeOspf: bgp.redistributeOspf,
-    networks: networks,
+    networks,
     custom: transformCustomRouting(bgp?.custom)
   };
 
@@ -329,7 +329,7 @@ const transformDHCP = (dhcp, deviceId, vrrpGroups = []) => {
     interface: dhcp.interface,
     range_start: rangeStart,
     range_end: rangeEnd,
-    dns: dns,
+    dns,
     options: options.map(opt => {
       const fields = pick(opt, [
         'option', 'value'

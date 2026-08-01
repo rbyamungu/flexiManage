@@ -114,7 +114,7 @@ class SwVersionUpdateManager {
       await notificationsMgr.sendNotifications(notifications);
     } catch (err) {
       logger.error('Failed to send upgrade notifications', {
-        params: { notifications: notifications },
+        params: { notifications },
         periodic: { task: this.taskInfo }
       }
       );
@@ -158,7 +158,7 @@ class SwVersionUpdateManager {
     const { versions } = newVersions;
     try {
       const query = {};
-      const set = { $set: { versions: versions, versionDeadline: pendingDeadline } };
+      const set = { $set: { versions, versionDeadline: pendingDeadline } };
       const options = {
         upsert: true,
         new: true,
@@ -182,7 +182,7 @@ class SwVersionUpdateManager {
     } catch (err) {
       logger.error('Device software versions update failed',
         {
-          params: { versions: versions, err: err.message },
+          params: { versions, err: err.message },
           periodic: { task: this.taskInfo }
         });
     }
@@ -217,7 +217,7 @@ class SwVersionUpdateManager {
       const { valid, err } = verifyAgentVersion(versions.device);
       if (!valid) {
         logger.error('Got an invalid device software version',
-          { params: { version: versions.device, err: err } });
+          { params: { version: versions.device, err } });
         return;
       }
 

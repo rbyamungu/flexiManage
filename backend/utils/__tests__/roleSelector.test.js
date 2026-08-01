@@ -16,8 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Module for deviceQueues Unit Test
-var configs = require('../../configs')();
-var roleSelector = require('../roleSelector')(configs.get('redisUrl'));
+const configs = require('../../configs')();
+const roleSelector = require('../roleSelector')(configs.get('redisUrl'));
 
 describe('Initialization', () => {
   afterAll(() => {
