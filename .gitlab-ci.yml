@@ -24,8 +24,7 @@ lint:
   stage: lint
   script:
     - cd backend
-    - npx eslint ./ --fix || true
-  allow_failure: true
+    - npx eslint ./ --fix
 
 test_backend:
   stage: test
