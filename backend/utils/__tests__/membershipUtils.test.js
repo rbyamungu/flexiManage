@@ -94,7 +94,7 @@ describe('Access Token Test', () => {
     };
   });
 
-  it('OrgId required is not allowed with group (orgId set, modify=true)', async (done) => {
+  it('OrgId required is not allowed with group (orgId set, modify=true)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -103,10 +103,10 @@ describe('Access Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Organization ID required and multi organization operation is not allowed'));
-    done();
+     ;
   });
 
-  it('OrgId required is not allowed with group (orgId set, modify=false)', async (done) => {
+  it('OrgId required is not allowed with group (orgId set, modify=false)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -115,10 +115,10 @@ describe('Access Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Organization ID required and multi organization operation is not allowed'));
-    done();
+     ;
   });
 
-  it('OrgId required is not allowed with group (orgId not set, modify=true)', async (done) => {
+  it('OrgId required is not allowed with group (orgId not set, modify=true)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -127,10 +127,10 @@ describe('Access Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Organization ID required and multi organization operation is not allowed'));
-    done();
+     ;
   });
 
-  it('OrgId required is not allowed with group (orgId not set, modify=false)', async (done) => {
+  it('OrgId required is not allowed with group (orgId not set, modify=false)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -139,10 +139,10 @@ describe('Access Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Organization ID required and multi organization operation is not allowed'));
-    done();
+     ;
   });
 
-  it('OrgId required is not allowed with account (orgId set, modify=true)', async (done) => {
+  it('OrgId required is not allowed with account (orgId set, modify=true)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -151,10 +151,10 @@ describe('Access Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Organization ID required and multi organization operation is not allowed'));
-    done();
+     ;
   });
 
-  it('OrgId required is not allowed with account (orgId set, modify=false)', async (done) => {
+  it('OrgId required is not allowed with account (orgId set, modify=false)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -163,10 +163,10 @@ describe('Access Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Organization ID required and multi organization operation is not allowed'));
-    done();
+     ;
   });
 
-  it('OrgId required is not allowed with account (orgId not set, modify=true)', async (done) => {
+  it('OrgId required is not allowed with account (orgId not set, modify=true)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -175,10 +175,10 @@ describe('Access Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Organization ID required and multi organization operation is not allowed'));
-    done();
+     ;
   });
 
-  it('OrgId required is not allowed with account (orgId not set, modify=false)', async (done) => {
+  it('OrgId required is not allowed with account (orgId not set, modify=false)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -187,10 +187,10 @@ describe('Access Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Organization ID required and multi organization operation is not allowed'));
-    done();
+     ;
   });
 
-  it('Only one orgId, group, account allowed (orgId+account)', async (done) => {
+  it('Only one orgId, group, account allowed (orgId+account)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -199,10 +199,10 @@ describe('Access Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Multiple organization definitions are not allowed'));
-    done();
+     ;
   });
 
-  it('Only one orgId, group, account allowed (orgId+group)', async (done) => {
+  it('Only one orgId, group, account allowed (orgId+group)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -211,10 +211,10 @@ describe('Access Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Multiple organization definitions are not allowed'));
-    done();
+     ;
   });
 
-  it('Only one orgId, group, account allowed (group+account)', async (done) => {
+  it('Only one orgId, group, account allowed (group+account)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -223,10 +223,10 @@ describe('Access Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Multiple organization definitions are not allowed'));
-    done();
+     ;
   });
 
-  it('Only one orgId, group, account allowed (orgId+group+account)', async (done) => {
+  it('Only one orgId, group, account allowed (orgId+group+account)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -235,10 +235,10 @@ describe('Access Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Multiple organization definitions are not allowed'));
-    done();
+     ;
   });
 
-  it('When modifying, an entity to modify must be specified', async (done) => {
+  it('When modifying, an entity to modify must be specified', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -247,10 +247,10 @@ describe('Access Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Modification with no entity is not allowed'));
-    done();
+     ;
   });
 
-  it('AccessToken with org required without orgId is not allowed (modify=true)', async (done) => {
+  it('AccessToken with org required without orgId is not allowed (modify=true)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -259,10 +259,10 @@ describe('Access Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Organization query parameter must be specified for this operation'));
-    done();
+     ;
   });
 
-  it('AccessToken with org required without orgId is not allowed (modify=false)', async (done) => {
+  it('AccessToken with org required without orgId is not allowed (modify=false)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -271,10 +271,10 @@ describe('Access Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Organization query parameter must be specified for this operation'));
-    done();
+     ;
   });
 
-  it('orgId set, org required (modify=true, org in account, permission=viewer)', async (done) => {
+  it('orgId set, org required (modify=true, org in account, permission=viewer)', async () => {
     let err, orgs;
     try {
       userParams.role = 'viewer';
@@ -285,10 +285,10 @@ describe('Access Token Test', () => {
     }
     expect(orgs).toEqual([]);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('orgId set, org required (modify=true, org in account, permission=manager)', async (done) => {
+  it('orgId set, org required (modify=true, org in account, permission=manager)', async () => {
     let err, orgs;
     try {
       userParams.role = 'manager';
@@ -299,10 +299,10 @@ describe('Access Token Test', () => {
     }
     expect(orgs).toEqual(['5ef0b7a657344d1ad6187100']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('orgId set, org required (modify=true, org in account, permission=owner)', async (done) => {
+  it('orgId set, org required (modify=true, org in account, permission=owner)', async () => {
     let err, orgs;
     try {
       userParams.role = 'owner';
@@ -315,10 +315,10 @@ describe('Access Token Test', () => {
     }
     expect(orgs).toEqual(['5ef0b7a657344d1ad6187100']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('orgId set, org required (modify=false, org in account, permission=viewer)', async (done) => {
+  it('orgId set, org required (modify=false, org in account, permission=viewer)', async () => {
     let err, orgs;
     try {
       userParams.role = 'viewer';
@@ -329,10 +329,10 @@ describe('Access Token Test', () => {
     }
     expect(orgs).toEqual(['5ef0b7a657344d1ad6187100']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('orgId set, org required (modify=false, org in account, permission=manager)', async (done) => {
+  it('orgId set, org required (modify=false, org in account, permission=manager)', async () => {
     let err, orgs;
     try {
       userParams.role = 'manager';
@@ -343,10 +343,10 @@ describe('Access Token Test', () => {
     }
     expect(orgs).toEqual(['5ef0b7a657344d1ad6187100']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('orgId set, org required (modify=false, org in account, permission=owner)', async (done) => {
+  it('orgId set, org required (modify=false, org in account, permission=owner)', async () => {
     let err, orgs;
     try {
       userParams.role = 'owner';
@@ -359,10 +359,10 @@ describe('Access Token Test', () => {
     }
     expect(orgs).toEqual(['5ef0b7a657344d1ad6187100']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('orgId set, org required (modify=false, org not in account)', async (done) => {
+  it('orgId set, org required (modify=false, org not in account)', async () => {
     let err, orgs;
     try {
       userParams.role = 'viewer';
@@ -373,10 +373,10 @@ describe('Access Token Test', () => {
     }
     expect(orgs).toEqual([]);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('Default: orgId not set, org not required, no group/account, modify=false (permission=account owner)', async (done) => {
+  it('Default: orgId not set, org not required, no group/account, modify=false (permission=account owner)', async () => {
     let err, orgs;
     try {
       userParams.role = 'owner';
@@ -392,10 +392,10 @@ describe('Access Token Test', () => {
       '5ef0b7a657344d1ad6187101',
       '5ef0b7a657344d1ad6187102']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('Default: orgId not set, org not required, no group/account, modify=false (permission=account viewer)', async (done) => {
+  it('Default: orgId not set, org not required, no group/account, modify=false (permission=account viewer)', async () => {
     let err, orgs;
     try {
       userParams.role = 'viewer';
@@ -411,10 +411,10 @@ describe('Access Token Test', () => {
       '5ef0b7a657344d1ad6187101',
       '5ef0b7a657344d1ad6187102']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('Default: orgId not set, org not required, no group/account, modify=false (permission=group viewer)', async (done) => {
+  it('Default: orgId not set, org not required, no group/account, modify=false (permission=group viewer)', async () => {
     let err, orgs;
     try {
       orgs = await membershipUtils.getAccessTokenOrgList(userParams,
@@ -426,10 +426,10 @@ describe('Access Token Test', () => {
       '5ef0b7a657344d1ad6187100',
       '5ef0b7a657344d1ad6187101']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('Default: orgId not set, org not required, no group/account, modify=false (permission=org mgr)', async (done) => {
+  it('Default: orgId not set, org not required, no group/account, modify=false (permission=org mgr)', async () => {
     let err, orgs;
     try {
       userParams.role = 'manager';
@@ -443,10 +443,10 @@ describe('Access Token Test', () => {
     }
     expect(orgs).toEqual(['5ef0b7a657344d1ad6187101']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('org not required, org set, modify=false (permission=group viewer)', async (done) => {
+  it('org not required, org set, modify=false (permission=group viewer)', async () => {
     let err, orgs;
     try {
       orgs = await membershipUtils.getAccessTokenOrgList(userParams,
@@ -456,10 +456,10 @@ describe('Access Token Test', () => {
     }
     expect(orgs).toEqual(['5ef0b7a657344d1ad6187101']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('org not required, group set, modify=false (permission=group viewer)', async (done) => {
+  it('org not required, group set, modify=false (permission=group viewer)', async () => {
     let err, orgs;
     try {
       orgs = await membershipUtils.getAccessTokenOrgList(userParams,
@@ -469,10 +469,10 @@ describe('Access Token Test', () => {
     }
     expect(orgs).toEqual(['5ef0b7a657344d1ad6187100', '5ef0b7a657344d1ad6187101']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('org not required, account set, modify=false (permission=group viewer)', async (done) => {
+  it('org not required, account set, modify=false (permission=group viewer)', async () => {
     let err, orgs;
     try {
       orgs = await membershipUtils.getAccessTokenOrgList(userParams,
@@ -482,7 +482,7 @@ describe('Access Token Test', () => {
     }
     expect(orgs).toEqual([]); // group viewer cannot access all account orgs, therefore fail
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 });
 
@@ -505,7 +505,7 @@ describe('User Token Test', () => {
     };
   });
 
-  it('Org required with orgId returns not allowed (modify=true)', async (done) => {
+  it('Org required with orgId returns not allowed (modify=true)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -514,10 +514,10 @@ describe('User Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Organization query parameter is only available in Access Key'));
-    done();
+     ;
   });
 
-  it('Org required with orgId returns not allowed (modify=false)', async (done) => {
+  it('Org required with orgId returns not allowed (modify=false)', async () => {
     let err;
     try {
       await membershipUtils.getAccessTokenOrgList(userParams,
@@ -526,10 +526,10 @@ describe('User Token Test', () => {
       err = e;
     }
     expect(err).toEqual(new Error('Organization query parameter is only available in Access Key'));
-    done();
+     ;
   });
 
-  it('Org required without orgId returns the user org (modify=true)', async (done) => {
+  it('Org required without orgId returns the user org (modify=true)', async () => {
     let err, orgs;
     try {
       orgs = await membershipUtils.getAccessTokenOrgList(userParams,
@@ -539,10 +539,10 @@ describe('User Token Test', () => {
     }
     expect(orgs).toEqual(['5ef0b7a657344d1ad6187100']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('Org required without orgId returns the user org (modify=false)', async (done) => {
+  it('Org required without orgId returns the user org (modify=false)', async () => {
     let err, orgs;
     try {
       orgs = await membershipUtils.getAccessTokenOrgList(userParams,
@@ -552,10 +552,10 @@ describe('User Token Test', () => {
     }
     expect(orgs).toEqual(['5ef0b7a657344d1ad6187100']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('Default: orgId not set, org not required, no group/account, modify=false', async (done) => {
+  it('Default: orgId not set, org not required, no group/account, modify=false', async () => {
     let err, orgs;
     try {
       orgs = await membershipUtils.getAccessTokenOrgList(userParams,
@@ -565,10 +565,10 @@ describe('User Token Test', () => {
     }
     expect(orgs).toEqual(['5ef0b7a657344d1ad6187100']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('org not required, org set, modify=false (permission=account viewer)', async (done) => {
+  it('org not required, org set, modify=false (permission=account viewer)', async () => {
     let err, orgs;
     try {
       orgs = await membershipUtils.getAccessTokenOrgList(userParams,
@@ -578,10 +578,10 @@ describe('User Token Test', () => {
     }
     expect(orgs).toEqual(['5ef0b7a657344d1ad6187100']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('org not required, org set, modify=true (permission=account viewer)', async (done) => {
+  it('org not required, org set, modify=true (permission=account viewer)', async () => {
     let err, orgs;
     try {
       orgs = await membershipUtils.getAccessTokenOrgList(userParams,
@@ -591,10 +591,10 @@ describe('User Token Test', () => {
     }
     expect(orgs).toEqual([]);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 
-  it('org not required, group set, modify=false (sum orgs in group)', async (done) => {
+  it('org not required, group set, modify=false (sum orgs in group)', async () => {
     let err, orgs;
     setMembershipQuery({
       user: ObjectId('5deaeae628e84b2bac6a5000'),
@@ -618,6 +618,6 @@ describe('User Token Test', () => {
     }
     expect(orgs).toEqual(['5ef0b7a657344d1ad6187100', '5ef0b7a657344d1ad6187101']);
     expect(err).toEqual(undefined);
-    done();
+     ;
   });
 });

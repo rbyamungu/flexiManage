@@ -38,37 +38,37 @@ describe('Validate vpn configuration', () => {
     };
   });
 
-  it('Should return false', async (done) => {
+  it('Should return false', async () => {
     const res = await appLogic.needToUpdatedDevices(vpnIdentifier, oldConfig, newConfig);
     expect(res).toBe(false);
-    done();
+     
   });
 
-  it('Should return true if serverPort is different', async done => {
+  it('Should return true if serverPort is different', async () => {
     newConfig.serverPort = '1196';
     const res = await appLogic.needToUpdatedDevices(vpnIdentifier, oldConfig, newConfig);
     expect(res).toBe(true);
-    done();
+     
   });
 
-  it('Should return true if dnsIps is different', async done => {
+  it('Should return true if dnsIps is different', async () => {
     newConfig.dnsIps = '8.8.4.4';
     const res = await appLogic.needToUpdatedDevices(vpnIdentifier, oldConfig, newConfig);
     expect(res).toBe(true);
-    done();
+     
   });
 
-  it('Should return true if dnsDomains is different', async done => {
+  it('Should return true if dnsDomains is different', async () => {
     newConfig.dnsDomains = 'local2.dns';
     const res = await appLogic.needToUpdatedDevices(vpnIdentifier, oldConfig, newConfig);
     expect(res).toBe(true);
-    done();
+     
   });
 
-  it('Should return true if routeAllTraffic is different', async done => {
+  it('Should return true if routeAllTraffic is different', async () => {
     newConfig.routeAllTrafficOverVpn = true;
     const res = await appLogic.needToUpdatedDevices(vpnIdentifier, oldConfig, newConfig);
     expect(res).toBe(true);
-    done();
+     
   });
 });
