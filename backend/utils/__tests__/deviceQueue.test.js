@@ -53,7 +53,6 @@ describe('Initialization', () => {
       (jobid, res) => {
         logger.verbose('Job completed, res=' + JSON.stringify(res));
         expect(res).toEqual({ resp: 'RRR1' });
-         
       });
     logger.verbose('Job ID = ' + job.id);
   });
@@ -91,7 +90,6 @@ describe('Initialization', () => {
       (jobid, res) => {
         logger.verbose('Job completed, res=' + JSON.stringify(res));
         expect(res).toBe(1);
-         
       }
     );
     logger.verbose('Job ID = ' + job.id);
@@ -103,14 +101,12 @@ describe('Initialization', () => {
     await deviceQueues.iterateJobs('complete', (rjob) => {
       expect(rjob.data.message.testdata).toBe('BBB1');
     });
-     
   });
 
   test('Check completed by org', async () => {
     await deviceQueues.iterateJobsByOrg('4edd40c86762e0fb12000001', 'complete', (rjob) => {
       expect(rjob.data.message.testdata).toBe('BBB1');
     });
-     
   });
 
   test('Add two more jobs to Org', async () => {
@@ -146,7 +142,6 @@ describe('Initialization', () => {
       (jobid, res) => {
         logger.verbose('Job completed, res=' + JSON.stringify(res));
         expect(res).toBe(1);
-         
       }
     );
     logger.verbose('Job IDs = ' + [job1.id, job2.id]);
@@ -161,7 +156,6 @@ describe('Initialization', () => {
       testDataResult.push(rjob.data.message.testdata);
     });
     expect(testDataResult).toStrictEqual(testDataList);
-     
   });
 
   test('Checking completed jobs2, desc order', async () => {
@@ -174,7 +168,6 @@ describe('Initialization', () => {
       return true;
     }, null, 0, -1, 'desc', -1);
     expect(testDataResult).toStrictEqual(testDataList.reverse());
-     
   });
 
   test('Checking completed jobs2, limit', async () => {
@@ -187,7 +180,6 @@ describe('Initialization', () => {
       return true;
     }, null, 0, -1, 'asc', 2);
     expect(testDataResult).toStrictEqual(testDataList);
-     
   });
 
   test('Check completed by org, skip, limit', async () => {
@@ -204,7 +196,6 @@ describe('Initialization', () => {
       return true;
     }, 0, -1, 'desc', 0, 2);
     expect(testDataResult).toStrictEqual(testDataList.slice(-2).reverse());
-     
   });
   test('Check completed by org, device filter', async () => {
     const testDataList = ['BBB1', 'DDD1', 'DDD2'];
@@ -220,7 +211,6 @@ describe('Initialization', () => {
       return true;
     }, 0, -1, 'desc', 0, -1, [{ key: 'type', op: '==', val: 'DDD' }]);
     expect(testDataResult).toStrictEqual(testDataList.slice(-2).reverse());
-     
   });
 
   test('Get last job', async () => {
@@ -229,7 +219,6 @@ describe('Initialization', () => {
     expect(lastJob.data.message.testdata).toBe('BBB1');
     lastJob = await deviceQueues.getLastJob('DDD');
     expect(lastJob.data.message.testdata).toBe('DDD2');
-     
   });
   test('Removing completed jobs', async () => {
     await deviceQueues.removeJobs('complete', 0);
@@ -271,7 +260,6 @@ describe('Initialization', () => {
       (jobid, res) => {
         logger.verbose('Job completed, res=' + JSON.stringify(res));
         expect(res).toBe(true);
-         
       }
     );
     logger.verbose('Job ID = ' + job.id);

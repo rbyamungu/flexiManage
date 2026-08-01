@@ -33,7 +33,6 @@ describe('Initialization', () => {
       err = e;
     }
     expect(err).toEqual(undefined);
-     
   });
 
   test('Elect role for role2test', async () => {
@@ -48,7 +47,6 @@ describe('Initialization', () => {
     // Give runIfActive time to finish
     setTimeout(function () {
       expect(isActive).toEqual(true);
-       
     }, 200);
   });
 
@@ -60,7 +58,6 @@ describe('Initialization', () => {
     // Give runIfActive time to finish as its sync
     setTimeout(function () {
       expect(isActive).toEqual(false);
-       
     }, 100);
   });
 
@@ -76,7 +73,6 @@ describe('Initialization', () => {
     // Give runIfActive time to finish
     setTimeout(function () {
       expect(isActive).toEqual(true);
-       
     }, 200);
   });
 });

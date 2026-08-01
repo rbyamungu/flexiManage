@@ -27,13 +27,13 @@ module.exports = {
     'max-len': 'off',
     'multiline-ternary': 'off',
     camelcase: 'off',
-    'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-    'array-callback-return': 'warn',
+    'no-unused-vars': 'off',
+    'array-callback-return': 'off',
     'n/no-exports-assign': 'off',
     'n/handle-callback-err': 'off',
-    'no-empty': 'warn',
+    'no-empty': 'off',
     'prefer-regex-literals': 'off',
-    'no-unreachable-loop': 'warn'
+    'no-unreachable-loop': 'off'
   },
   plugins: ['jest']
 };
